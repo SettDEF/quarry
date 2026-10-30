@@ -1,0 +1,43 @@
+# xbooru — adult photography and 3D work, on the gelbooru dapi shape.
+#
+# Included because it is the one adult board of its kind still answering
+# without credentials: gelbooru and rule34.xxx both want a key now, and
+# realbooru's API is off. Stills only — its `webm` tag returns GIFs.
+
+id = "xbooru"
+label = "xbooru"
+category = "adult"
+adult = true
+
+[request]
+url = "https://xbooru.com/index.php?page=dapi&s=post&q=index&json=1&limit={limit}&pid={page0}&tags={tags}"
+# "by this person", in this board's own vocabulary.
+#
+# A plain tag, NOT `artist:{author}` — measured on Danbooru 2026-09-23:
+# `tags=wlop` answers 5 rows and `tags=artist:wlop` answers 0. The philomena
+# boards (derpibooru and friends) are the ones that want the namespace, and
+# they already declare it.
+author_tag = "{author}"
+tag_resolver = "gelbooru"
+limit = 40
+format = "json"
+root = ""
+
+[capabilities]
+text = true
+tags = true
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "file_url"
+thumb = "preview_url"
+sample = "sample_url"
+width = "width"
+height = "height"
+tags = "tags"
+tags_separator = " "
+# The post's own page, not the listing: without this every row's "open source
+# page" went to the same place.
+page_url = "https://xbooru.com/index.php?page=post&s=view&id={id}"

@@ -1,0 +1,26 @@
+# DigitalNZ — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "digitalnz"
+label = "DigitalNZ"
+category = "photography"
+
+[request]
+url = "https://api.digitalnz.org/v3/records.json?text={query}&per_page={limit}&page={page}&and[category][]=Images"
+limit = 40
+format = "json"
+root = "search.results"
+browse_term = "landscape"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "large_thumbnail_url"
+thumb = "thumbnail_url"
+title = "title"
+page_url = "landing_url"

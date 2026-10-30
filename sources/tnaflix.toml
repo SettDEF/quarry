@@ -1,0 +1,188 @@
+# TNAFlix — read from its search listing. Verified live 2026-09-17: rows a
+# page, page 2 disjoint from page 1. It publishes the poster's own dimensions,
+# so unlike the other tubes here the ratio is measured rather than declared.
+id = "tnaflix"
+label = "TNAFlix"
+category = "adult"
+adult = true
+family = "video"
+
+[request]
+url = "https://www.tnaflix.com/search.php?what={query}&page={page}"
+format = "html"
+limit = 40
+space = "+"
+
+[capabilities]
+text = true
+
+[html]
+row = "a.video-thumb"
+base = "https://www.tnaflix.com"
+
+[html.fields]
+page = { attr = "href" }
+id = { attr = "href", re = "/video(\\d+)" }
+thumb = { sel = "img", attr = "src" }
+title = { sel = "img", attr = "alt" }
+width = { sel = "img", attr = "width" }
+height = { sel = "img", attr = "height" }
+
+[map]
+id = "id"
+url = "thumb"
+thumb = "thumb"
+title = "title"
+page_url = "page"
+width = "width"
+height = "height"
+
+# THE SITE'S OWN TABLE OF CONTENTS, as things you can pick.
+# Categories run the site's own search for that word — pornhub's
+# `category=` parameter rejects ids from its own categories endpoint
+# (probed 2026-09-17: "Category does not exist!" for every valid id),
+# so the name goes through the search, which does work.
+
+[[sections]]
+group = "Categories"
+label = "amateur"
+
+[[sections]]
+group = "Categories"
+label = "anal"
+
+[[sections]]
+group = "Categories"
+label = "arab"
+
+[[sections]]
+group = "Categories"
+label = "asian"
+
+[[sections]]
+group = "Categories"
+label = "babe"
+
+[[sections]]
+group = "Categories"
+label = "bbw"
+
+[[sections]]
+group = "Categories"
+label = "black"
+
+[[sections]]
+group = "Categories"
+label = "blonde"
+
+[[sections]]
+group = "Categories"
+label = "blowjob"
+
+[[sections]]
+group = "Categories"
+label = "bondage"
+
+[[sections]]
+group = "Categories"
+label = "brazilian"
+
+[[sections]]
+group = "Categories"
+label = "british"
+
+[[sections]]
+group = "Categories"
+label = "brunette"
+
+[[sections]]
+group = "Categories"
+label = "bukkake"
+
+[[sections]]
+group = "Categories"
+label = "cartoon"
+
+[[sections]]
+group = "Categories"
+label = "casting"
+
+[[sections]]
+group = "Categories"
+label = "celebrity"
+
+[[sections]]
+group = "Categories"
+label = "compilation"
+
+[[sections]]
+group = "Categories"
+label = "cosplay"
+
+[[sections]]
+group = "Categories"
+label = "creampie"
+
+[[sections]]
+group = "Categories"
+label = "cuckold"
+
+[[sections]]
+group = "Categories"
+label = "cumshot"
+
+[[sections]]
+group = "Categories"
+label = "czech"
+
+[[sections]]
+group = "Categories"
+label = "deepthroat"
+
+[[sections]]
+group = "Categories"
+label = "ebony"
+
+[[sections]]
+group = "Categories"
+label = "euro"
+
+[[sections]]
+group = "Categories"
+label = "feet"
+
+[[sections]]
+group = "Categories"
+label = "fetish"
+
+[[sections]]
+group = "Categories"
+label = "ffm"
+
+[[sections]]
+group = "Categories"
+label = "fingering"
+
+[[sections]]
+group = "Categories"
+label = "fisting"
+
+[[sections]]
+group = "Categories"
+label = "fmm"
+
+[[sections]]
+group = "Categories"
+label = "french"
+
+[[sections]]
+group = "Categories"
+label = "funny"
+
+[[sections]]
+group = "Categories"
+label = "gaming"
+
+[[sections]]
+group = "Categories"
+label = "gangbang"

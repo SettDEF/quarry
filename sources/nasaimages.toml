@@ -1,0 +1,27 @@
+# NASA image library — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "nasaimages"
+label = "NASA image library"
+category = "photography"
+
+[request]
+url = "https://images-api.nasa.gov/search?q={query}&media_type=image&page={page}"
+limit = 40
+format = "json"
+root = "collection.items"
+browse_term = "nebula"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "data[0].nasa_id"
+url = "links[0].href"
+title = "data[0].title"
+author = "data[0].photographer"
+# No page of its own in this API — the file is the thing.
+page_url = "links[0].href"

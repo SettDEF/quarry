@@ -1,0 +1,40 @@
+# Lorem Picsum — about a thousand Unsplash photographs, keyless, with the real
+# dimensions of each in the listing.
+#
+# A small catalogue rather than a search engine: there is no query at all, just
+# the list, which ends (an empty page) after roughly a thousand rows. It earns
+# its place because every row is a professionally shot photograph at 3000-5000px
+# with its author named, and because a fixed, boring list is exactly what a
+# first run or a test needs. Verified live 2026-09-15: 200, 20 rows a page,
+# page 2 disjoint from page 1.
+#
+# There is no thumbnail in the payload and the image server only crops to a
+# fixed box, which would change the aspect; the daemon renders its own ladder
+# from the original instead.
+
+id = "picsum"
+label = "Lorem Picsum"
+category = "photography"
+
+[request]
+url = "https://picsum.photos/v2/list?page={page}&limit={limit}"
+limit = 100
+format = "json"
+root = ""
+
+[capabilities]
+# Nothing to search: it is one list.
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+# `/id/<n>/<w>/<h>` at the photo's own size is the untouched original.
+url = "download_url"
+author = "author"
+# The Unsplash page the photo came from, where its licence lives.
+page_url = "url"
+width = "width"
+height = "height"

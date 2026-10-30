@@ -1,0 +1,61 @@
+[package]
+name = "quarryd"
+version = "0.1.0"
+edition = "2021"
+description = "quarry daemon — catalog, query and export behind the v1 wire protocol"
+
+[dependencies]
+# The fetching half of what used to be `scrape.rs`, shared with cairn. Path
+# rather than a version: the two move together and there is no registry in it.
+fetchkit = { path = "../../fetchkit" }
+# Only what the protocol needs. The mock backend reads a fixture; the crawler,
+# SQLite and the image pipeline arrive in later phases with their own deps.
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "io-util", "signal", "fs", "sync"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# ── the scraping toolkit ─────────────────────────────────────────────────────
+# rustls rather than native-tls: no OpenSSL version to match at runtime, and the
+# daemon ships as a single binary. gzip because several of these sources serve
+# 1-6 MB of JSON per call.
+# rustls for everything, and native-tls ALSO available for one source.
+#
+# Reddit's edge fingerprints the TLS handshake: the same token, headers and URL
+# answer 200 from curl and from Python (both OpenSSL) and 403 with a website
+# block page from reqwest over rustls. No header changes it — it is the
+# handshake being recognised, not the request. So the Reddit client, and only
+# the Reddit client, is built on native-tls; everything else keeps rustls and
+# its no-OpenSSL-at-runtime promise.
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "native-tls", "gzip", "brotli", "json"] }
+scraper = "0.23"        # CSS selection for the HTML sources (pfps.gg)
+quick-xml = "0.38"      # RSS (DeviantArt's backend feed)
+regex = "1"
+url = "2"
+# Source manifests are TOML: a person writes these, and TOML is kinder to write
+# by hand than JSON and stricter than YAML.
+toml = "0.9"
+
+# Bundled so the daemon carries its own SQLite (and so FTS5 is certain to be
+# compiled in rather than depending on what the system happens to ship).
+rusqlite = { version = "0.37", features = ["bundled", "serde_json"] }
+
+# ── the image pipeline ───────────────────────────────────────────────────────
+# Decoding, resizing and encoding in Rust rather than shelling out to
+# ImageMagick: an export becomes a deterministic op chain the UI can print, and
+# the daemon stays a single binary.
+# The freedesktop thumbnail spec names a file by the MD5 of its URI. Not a
+# security choice — a naming one, fixed by the standard.
+md-5 = "0.10"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "webp"] }
+# Vectors rasterise at the final size, every time — never resample a rendered
+# raster. usvg also sanitises on ingest: an SVG is code.
+resvg = "0.45"
+usvg = "0.45"
+tiny-skia = "0.11"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time"] }
+
+[profile.release]
+lto = "thin"
+strip = true

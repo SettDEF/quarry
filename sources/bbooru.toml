@@ -1,0 +1,49 @@
+# BBooru — Gelbooru 0.2 dapi, keyless, ids past 27.8M. Verified live 2026-09-17:
+# pid 0, 1 and 500 all answered distinct rows; `rating:safe` / `-rating:safe`
+# both honoured; 35 of 40 on the first page rated explicit.
+# The keyless way into rule34.xxx-class material, which rule34.toml needs a key
+# for. No `tag_resolver`: this board's own autocomplete just redirects to
+# rule34.xxx and answers HTML, which the resolver would spend two requests on.
+
+id = "bbooru"
+label = "BBooru"
+category = "adult"
+# Declared adult, which is what makes every row it returns carry `nsfw`.
+# Without this the category said "adult" and the ROWS said nothing, so
+# switching adult content off hid the source from the filter list and left
+# its pictures in the wall.
+adult = true
+
+[request]
+url = "https://bbooru.com/index.php?page=dapi&s=post&q=index&json=1&limit={limit}&pid={page0}&tags={tags}"
+# "by this person", in this board's own vocabulary.
+#
+# A plain tag, NOT `artist:{author}` — measured on Danbooru 2026-09-23:
+# `tags=wlop` answers 5 rows and `tags=artist:wlop` answers 0. The philomena
+# boards (derpibooru and friends) are the ones that want the namespace, and
+# they already declare it.
+author_tag = "{author}"
+limit = 40
+format = "json"
+root = ""
+sfw_tag = "rating:safe"
+nsfw_tag = "-rating:safe"
+
+[capabilities]
+text = true
+tags = true
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "file_url"
+thumb = "preview_url"
+sample = "sample_url"
+width = "width"
+height = "height"
+tags = "tags"
+tags_separator = " "
+page_url = "https://bbooru.com/index.php?page=post&s=view&id={id}"
+rating = "rating"
+nsfw_ratings = ["sensitive", "questionable", "explicit"]

@@ -1,0 +1,48 @@
+# MSPABooru — Homestuck and MS Paint Adventures fan art, on an old Gelbooru
+# (0.2.0) whose dapi still answers without credentials.
+#
+# OLD ENOUGH TO HAVE NO URLS. The rows carry `directory` and `image` rather than
+# `file_url`, so both the picture and its thumbnail are built from them. The
+# thumbnail keeps the image's own extension — `thumbnail_<hash>.png` answered
+# 200 where `thumbnail_<hash>.jpg`, the modern Gelbooru spelling, answered 404
+# (verified 2026-09-15).
+#
+# Mostly safe (39 of 40 on the first page), so marked per row by rating rather
+# than as adult. Its `-rating:safe` is NOT honoured — it returned `Safe` rows —
+# so no rating tags are pushed down and `-nsfw` is applied locally instead.
+
+id = "mspabooru"
+label = "MSPABooru"
+category = "art"
+
+[request]
+url = "https://mspabooru.com/index.php?page=dapi&s=post&q=index&json=1&limit={limit}&pid={page0}&tags={tags}"
+# "by this person", in this board's own vocabulary.
+#
+# A plain tag, NOT `artist:{author}` — measured on Danbooru 2026-09-23:
+# `tags=wlop` answers 5 rows and `tags=artist:wlop` answers 0. The philomena
+# boards (derpibooru and friends) are the ones that want the namespace, and
+# they already declare it.
+author_tag = "{author}"
+tag_resolver = "gelbooru"
+limit = 40
+format = "json"
+root = ""
+
+[capabilities]
+text = true
+tags = true
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "https://mspabooru.com//images/{directory}/{image}"
+thumb = "https://mspabooru.com/thumbnails/{directory}/thumbnail_{image}"
+width = "width"
+height = "height"
+tags = "tags"
+tags_separator = " "
+page_url = "https://mspabooru.com/index.php?page=post&s=view&id={id}"
+rating = "rating"
+nsfw_ratings = ["questionable", "explicit"]

@@ -1,0 +1,9 @@
+{
+  "id": "slideshow",
+  "name": "Slideshow",
+  "version": "1.0",
+  "author": "quarry",
+  "description": "Steps through the results on a timer, and can set each one as the wallpaper as it goes — a way to live with a shortlist rather than judge it from a grid.",
+  "entry": "Main.qml",
+  "enabledByDefault": false
+}

@@ -1,0 +1,28 @@
+# AnimeThemes — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "animethemes"
+label = "AnimeThemes"
+category = "art"
+
+[request]
+url = "https://api.animethemes.moe/anime?page[size]={limit}&include=images#page={page_value}"
+limit = 40
+format = "json"
+# Everything in one answer: one page, and the token that says so
+# rides in the fragment, which is never sent to the server.
+page_values = ["1"]
+root = "anime"
+
+[capabilities]
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "images[0].link"
+title = "name"
+# No page of its own in this API — the file is the thing.
+page_url = "images[0].link"

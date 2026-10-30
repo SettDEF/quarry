@@ -1,0 +1,35 @@
+# The Cleveland Museum of Art — its entire open-access collection, keyless, with
+# three rendered sizes per work already on a CDN.
+#
+# Unusually complete for a museum API: `images.print` is a real 1536px file, not
+# a reference to one, so no URL has to be constructed and no second request is
+# needed to find out how big anything is.
+
+id = "cleveland"
+label = "Cleveland Museum of Art"
+category = "photography"
+
+[request]
+url = "https://openaccess-api.clevelandart.org/api/artworks/?q={query}&limit={limit}&skip={offset}&has_image=1"
+limit = 40
+format = "json"
+root = "data"
+browse_term = "landscape"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "images.print.url"
+thumb = "images.web.url"
+sample = "images.web.url"
+title = "title"
+page_url = "url"
+author = "culture"
+width = "images.print.width"
+height = "images.print.height"
+bytes = "images.print.filesize"

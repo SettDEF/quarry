@@ -1,0 +1,26 @@
+# Open Library subjects — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "openlibrary_art"
+label = "Open Library subjects"
+category = "art"
+
+[request]
+url = "https://openlibrary.org/subjects/art.json?limit={limit}&offset={offset}"
+limit = 40
+format = "json"
+root = "works"
+
+[capabilities]
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "key"
+url = "https://covers.openlibrary.org/b/id/{cover_id}-L.jpg"
+title = "title"
+author = "authors[0].name"
+# No page of its own in this API — the file is the thing.
+page_url = "https://covers.openlibrary.org/b/id/{cover_id}-L.jpg"

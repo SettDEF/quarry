@@ -1,0 +1,41 @@
+# hypnohub — gelbooru's API shape, still answering without credentials.
+#
+# One of the few boards of this family that has not put its dapi behind a key:
+# gelbooru and rule34.xxx both want one now, tbib is behind Cloudflare, and
+# realbooru's is off. Verified live 2026-09-05.
+
+id = "hypnohub"
+label = "HypnoHub"
+category = "adult"
+adult = true
+
+[request]
+url = "https://hypnohub.net/index.php?page=dapi&s=post&q=index&json=1&limit={limit}&pid={page0}&tags={tags}"
+# "by this person", in this board's own vocabulary.
+#
+# A plain tag, NOT `artist:{author}` — measured on Danbooru 2026-09-23:
+# `tags=wlop` answers 5 rows and `tags=artist:wlop` answers 0. The philomena
+# boards (derpibooru and friends) are the ones that want the namespace, and
+# they already declare it.
+author_tag = "{author}"
+tag_resolver = "gelbooru"
+limit = 40
+format = "json"
+root = ""
+
+[capabilities]
+text = true
+tags = true
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "file_url"
+thumb = "preview_url"
+sample = "sample_url"
+width = "width"
+height = "height"
+tags = "tags"
+tags_separator = " "
+page_url = "https://hypnohub.net/index.php?page=post&s=view&id={id}"

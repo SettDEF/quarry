@@ -1,0 +1,290 @@
+# Pornhub — the keyless "webmasters" search API. Verified live 2026-09-17: empty
+# search browses, 30 rows a page, page 2 disjoint from page 1.
+# Poster frames only, like eporner.toml, and 320x180 is the largest offered.
+# Its words come in three lists of OBJECTS — free-text tags, the performers and
+# its own categories — which the mapper reads with `tags[].tag_name` and joins
+# with ` + `. They were unmapped before, so every video arrived with nothing on
+# it to search by but its title.
+# Back-to-back requests answer 403; spaced out they do not, so the host limiter
+# and retry are what keep this source working.
+id = "pornhub"
+label = "Pornhub"
+category = "adult"
+adult = true
+# A video, even though what the API hands over is its poster. Its rows are a poster frame and a page; the viewer resolves the page to the real file when you open one.
+family = "video"
+
+# Its posters are hotlink-protected on SOME of its edges: verified live
+# 2026-09-19, `pix-cdn77.phncdn.com` answers 403 without a Referer and 200 with
+# one, while `pix-fl.phncdn.com` serves either way. Declaring the family covers
+# every edge, which is what stopped roughly twelve tiles in thirty being blank.
+referer = "https://www.pornhub.com/"
+referer_hosts = ["phncdn.com"]
+
+[request]
+# `category=` takes the category's NAME, not the id its own categories endpoint
+# publishes — probed live 2026-09-28: `category=37` answers HTTP 200 with
+# `{"message": "Category does not exist!"}`, `category=18-25` answers 30 rows.
+# Empty is a plain browse, and it combines with `search=`. Two names at once is
+# an error, which is why `Capabilities::categories` checks the value first.
+url = "https://www.pornhub.com/webmasters/search?search={query}&category={category}&ordering={sort}&page={page}&thumbsize=large_hd"
+limit = 30
+format = "json"
+root = "videos"
+
+# Its own words for an ordering; `{sort}` picks one. Verified live 2026-09-17.
+[request.sort]
+default = "featured"
+new = "newest"
+large = "mostviewed"
+# An ordering that is really two parameters — see `encode_sort` in
+# declarative.rs. Verified live 2026-09-19: `period` is honoured for
+# `mostviewed` and `rating`, 30 rows a page for each.
+rated = "rating"
+week = "mostviewed&period=weekly"
+month = "mostviewed&period=monthly"
+year = "mostviewed&period=yearly"
+rated_week = "rating&period=weekly"
+rated_month = "rating&period=monthly"
+
+[capabilities]
+text = true
+# Its search takes words, not tag ids — a typed tag goes through `search=`
+# like any other word. What changed is that rows now CARRY their tags.
+tags = false
+nsfw = false
+sort = true
+
+[map]
+id = "video_id"
+url = "thumbs[0].src"
+width = "thumbs[0].width"
+height = "thumbs[0].height"
+title = "title"
+page_url = "url"
+# "15:10" — a clock, not a number. Parsed as one; `duration` alone would read
+# that as fifteen seconds.
+duration_clock = "duration"
+# Everything the site says this video is ABOUT, in one list: its free-text
+# tags, the performers in it, its own categories, and which segment of the site
+# it belongs to. A performer's name is the single most likely thing anybody
+# types, and it was not in the catalogue at all.
+tags = "tags[].tag_name + pornstars[].pornstar_name + categories[].category + segment"
+
+# THE SITE'S OWN TABLE OF CONTENTS, as things you can pick.
+# Categories run the site's own search for that word — pornhub's
+# `category=` parameter rejects the IDS its own categories endpoint publishes
+# (probed 2026-09-17 and again 2026-09-28: "Category does not exist!" for every
+# valid id) — but it takes the NAME, which is what the sections below send as
+# `category:<name>`.
+#
+# They ran through `search=` until 2026-09-28, and that is what "the categories
+# do not open properly" was: a search for the word, not the category. Probed
+# side by side — `search=18-25` returned a lesbian MILF video first, while
+# `category=18-25` returned a college-girl one. Both answer 30 rows, so nothing
+# looked broken; the rows were simply the wrong rows.
+
+# The site's whole category list (243 on 2026-10-23), fetched in the
+# background; the hand-written sections below show first. Its tag list is not
+# used: seven megabytes for the letter "a" alone, and every video already
+# carries its own tags (see [map]).
+[[sections_from]]
+group = "Categories"
+url = "https://www.pornhub.com/webmasters/categories"
+root = "categories"
+label = "category"
+
+[[sections]]
+group = "Sort"
+label = "Featured"
+q = "sort:relevance"
+
+[[sections]]
+group = "Sort"
+label = "Newest"
+q = "sort:new"
+
+[[sections]]
+group = "Sort"
+label = "Most viewed"
+q = "sort:large"
+
+[[sections]]
+group = "Categories"
+label = "amateur"
+q = "category:amateur"
+
+[[sections]]
+group = "Categories"
+label = "anal"
+q = "category:anal"
+
+[[sections]]
+group = "Categories"
+label = "arab"
+q = "category:arab"
+
+[[sections]]
+group = "Categories"
+label = "asian"
+q = "category:asian"
+
+[[sections]]
+group = "Categories"
+label = "babe"
+q = "category:babe"
+
+[[sections]]
+group = "Categories"
+label = "bbw"
+q = "category:bbw"
+
+[[sections]]
+group = "Categories"
+label = "black"
+q = "category:black"
+
+[[sections]]
+group = "Categories"
+label = "blonde"
+q = "category:blonde"
+
+[[sections]]
+group = "Categories"
+label = "blowjob"
+q = "category:blowjob"
+
+[[sections]]
+group = "Categories"
+label = "bondage"
+q = "category:bondage"
+
+[[sections]]
+group = "Categories"
+label = "brazilian"
+q = "category:brazilian"
+
+[[sections]]
+group = "Categories"
+label = "british"
+q = "category:british"
+
+[[sections]]
+group = "Categories"
+label = "brunette"
+q = "category:brunette"
+
+[[sections]]
+group = "Categories"
+label = "bukkake"
+q = "category:bukkake"
+
+[[sections]]
+group = "Categories"
+label = "cartoon"
+q = "category:cartoon"
+
+[[sections]]
+group = "Categories"
+label = "casting"
+q = "category:casting"
+
+[[sections]]
+group = "Categories"
+label = "celebrity"
+q = "category:celebrity"
+
+[[sections]]
+group = "Categories"
+label = "compilation"
+q = "category:compilation"
+
+[[sections]]
+group = "Categories"
+label = "cosplay"
+q = "category:cosplay"
+
+[[sections]]
+group = "Categories"
+label = "creampie"
+q = "category:creampie"
+
+[[sections]]
+group = "Categories"
+label = "cuckold"
+q = "category:cuckold"
+
+[[sections]]
+group = "Categories"
+label = "cumshot"
+q = "category:cumshot"
+
+[[sections]]
+group = "Categories"
+label = "czech"
+q = "category:czech"
+
+[[sections]]
+group = "Categories"
+label = "deepthroat"
+q = "category:deepthroat"
+
+[[sections]]
+group = "Categories"
+label = "ebony"
+q = "category:ebony"
+
+[[sections]]
+group = "Categories"
+label = "euro"
+q = "category:euro"
+
+[[sections]]
+group = "Categories"
+label = "feet"
+q = "category:feet"
+
+[[sections]]
+group = "Categories"
+label = "fetish"
+q = "category:fetish"
+
+[[sections]]
+group = "Categories"
+label = "ffm"
+q = "category:ffm"
+
+[[sections]]
+group = "Categories"
+label = "fingering"
+q = "category:fingering"
+
+[[sections]]
+group = "Categories"
+label = "fisting"
+q = "category:fisting"
+
+[[sections]]
+group = "Categories"
+label = "fmm"
+q = "category:fmm"
+
+[[sections]]
+group = "Categories"
+label = "french"
+q = "category:french"
+
+[[sections]]
+group = "Categories"
+label = "funny"
+q = "category:funny"
+
+[[sections]]
+group = "Categories"
+label = "gaming"
+q = "category:gaming"
+
+[[sections]]
+group = "Categories"
+label = "gangbang"
+q = "category:gangbang"

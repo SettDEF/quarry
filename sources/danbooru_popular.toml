@@ -1,0 +1,31 @@
+# Danbooru popular — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "danbooru_popular"
+label = "Danbooru popular"
+category = "art"
+
+[request]
+url = "https://danbooru.donmai.us/explore/posts/popular.json?limit={limit}#page={page_value}"
+limit = 40
+format = "json"
+# Everything in one answer: one page, and the token that says so
+# rides in the fragment, which is never sent to the server.
+page_values = ["1"]
+
+[capabilities]
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "file_url"
+thumb = "preview_file_url"
+width = "image_width"
+height = "image_height"
+tags = "tag_string"
+author = "tag_string_artist"
+# No page of its own in this API — the file is the thing.
+page_url = "file_url"

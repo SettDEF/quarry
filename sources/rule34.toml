@@ -1,0 +1,56 @@
+# rule34.xxx — adult pictures and video, including a great deal of real
+# photography rather than art.
+#
+# Needs a free API key since 2024: the dapi endpoint answers
+# "Missing authentication" with a 200 and no rows otherwise, which would look
+# exactly like an empty catalogue. It is listed here with its `auth` block so
+# quarry can say WHY it is skipped, and where to get the credentials, instead
+# of quietly shipping a source that returns nothing.
+#
+# Set both, then restart the daemon:
+#   export RULE34_USER_ID=...  RULE34_API_KEY=...
+
+id = "rule34"
+label = "rule34.xxx"
+category = "adult"
+adult = true
+
+[auth]
+vars = ["RULE34_USER_ID", "RULE34_API_KEY"]
+# `{VAR}`, not `$VAR`: resolve_auth fills braces only, and the `$` spelling
+# this used to have sent the literal text "$RULE34_API_KEY" as the key.
+query = "&user_id={RULE34_USER_ID}&api_key={RULE34_API_KEY}"
+hint = "https://rule34.xxx/index.php?page=account&s=options — API Access Credentials"
+
+[request]
+url = "https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&limit={limit}&pid={page0}&tags={tags}"
+# "by this person", in this board's own vocabulary.
+#
+# A plain tag, NOT `artist:{author}` — measured on Danbooru 2026-09-23:
+# `tags=wlop` answers 5 rows and `tags=artist:wlop` answers 0. The philomena
+# boards (derpibooru and friends) are the ones that want the namespace, and
+# they already declare it.
+author_tag = "{author}"
+tag_resolver = "gelbooru"
+limit = 40
+format = "json"
+root = ""
+
+[capabilities]
+text = true
+tags = true
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "file_url"
+thumb = "preview_url"
+sample = "sample_url"
+width = "width"
+height = "height"
+tags = "tags"
+tags_separator = " "
+# The post's own page, not the listing: without this every row's "open source
+# page" went to the same place.
+page_url = "https://rule34.xxx/index.php?page=post&s=view&id={id}"

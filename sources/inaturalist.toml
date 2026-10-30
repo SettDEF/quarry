@@ -1,0 +1,48 @@
+# iNaturalist — research-grade wildlife photographs from observers everywhere,
+# restricted to the openly licensed ones (CC0, CC BY, CC BY-SA), keyless.
+#
+# Verified live 2026-09-15: 200, 30 rows a page, page 2 disjoint, every row with
+# its original dimensions; the constructed `original` URL answered 200
+# image/jpeg.
+#
+# THE ORIGINAL IS ONE WORD AWAY. Rows carry the 75px `square` URL, and the
+# `medium`, `large` and `original` renders sit at the same path with that word
+# changed — extension included, which is why this is a replace filter and not a
+# template built from the photo id (the extension varies: jpg, jpeg, png).
+#
+# `fields=` trims each page from 1.5 MB to about 20 KB: the v1 endpoint sends
+# every identification and comment on every observation.
+#
+# The API refuses to page past 10,000 results for one query, and asks for about
+# one request a second — the per-host limiter already does that.
+
+id = "inaturalist"
+label = "iNaturalist"
+category = "photography"
+
+[request]
+url = "https://api.inaturalist.org/v2/observations?user_login={author}&photos=true&quality_grade=research&photo_license=cc0,cc-by,cc-by-sa&q={query}&page={page}&per_page={limit}&fields=id,uri,photos.id,photos.url,photos.license_code,photos.attribution,photos.original_dimensions.width,photos.original_dimensions.height,taxon.name,taxon.preferred_common_name,user.login"
+limit = 30
+format = "json"
+root = "results"
+# No browse term: an empty `q` is the newest research-grade observations.
+
+[capabilities]
+# `user_login=` is a real filter on the API, verified live.
+author = true
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "{photos[0].url|replace:/square.:/original.}"
+thumb = "{photos[0].url|replace:/square.:/medium.}"
+sample = "{photos[0].url|replace:/square.:/large.}"
+title = "taxon.preferred_common_name || taxon.name"
+author = "user.login"
+license = "photos[0].license_code"
+page_url = "uri"
+width = "photos[0].original_dimensions.width"
+height = "photos[0].original_dimensions.height"

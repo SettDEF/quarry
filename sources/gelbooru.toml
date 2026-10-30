@@ -1,0 +1,77 @@
+# Gelbooru — same booru shape as konachan/yandere, but dapi requires a key.
+#
+# https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1 answers 401
+# with an empty body when `user_id`/`api_key` are missing — verified live,
+# 2026-08-30. That is why this file did not exist before: a source that
+# always 401s is not a source that returns zero results, it is one that is
+# not configured, and shipping it as though it worked would hide that.
+#
+# So it leans on `[auth]` (see declarative.rs): unset the two vars below and
+# this manifest fails to load — quarryd logs why and gelbooru is simply not
+# in the source list — instead of registering an id that answers nothing on
+# every query. Set them and it works exactly like konachan/yandere.
+#
+# Get a key at https://gelbooru.com/index.php?page=account&s=options, tab
+# "API Access Credentials" (account required).
+#
+# One more difference from Moebooru: `pid` is the page parameter here and it
+# is ZERO-based, where konachan/yandere's `page` is one-based — `{page0}`
+# already exists in declarative.rs for exactly this.
+id = "gelbooru"
+label = "Gelbooru"
+category = "adult"
+# Declared adult, which is what makes every row it returns carry `nsfw`.
+# Without this the category said "adult" and the ROWS said nothing, so
+# switching adult content off hid the source from the filter list and left
+# its pictures in the wall.
+adult = true
+
+[request]
+url = "https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&limit={limit}&pid={page0}&tags={tags}"
+# "by this person", in this board's own vocabulary.
+#
+# A plain tag, NOT `artist:{author}` — measured on Danbooru 2026-09-23:
+# `tags=wlop` answers 5 rows and `tags=artist:wlop` answers 0. The philomena
+# boards (derpibooru and friends) are the ones that want the namespace, and
+# they already declare it.
+author_tag = "{author}"
+tag_resolver = "gelbooru"
+limit = 40
+format = "json"
+root = "post"
+
+[auth]
+vars = ["GELBOORU_USER_ID", "GELBOORU_API_KEY"]
+query = "&user_id={GELBOORU_USER_ID}&api_key={GELBOORU_API_KEY}"
+hint = "https://gelbooru.com/index.php?page=account&s=options — API Access Credentials tab"
+
+[capabilities]
+text = true
+tags = true
+# Same story as Moebooru: gelbooru has a rating field, no query parameter for
+# it. The local matcher applies `-nsfw` against the mapped row.
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "file_url"
+thumb = "preview_url"
+# Same dapi shape as safebooru.toml, whose sample_url is verified live
+# (2026-08-30) to serve a genuinely smaller render when a post has one.
+# gelbooru's own dapi 401s without a key so this field itself is unverified
+# here, but it is the documented Gelbooru API v0.2 post shape safebooru
+# mirrors, not a guess.
+sample = "sample_url"
+width = "width"
+height = "height"
+tags = "tags"
+tags_separator = " "
+# The post's own page, not the listing: without this every row's "open source
+# page" went to the same place.
+page_url = "https://gelbooru.com/index.php?page=post&s=view&id={id}"
+# Not `adult = true`: gelbooru is a mixed board, so each row is marked by its
+# own rating instead. Gelbooru's ratings are general / sensitive /
+# questionable / explicit, the Danbooru set spelled out; only general is safe.
+rating = "rating"
+nsfw_ratings = ["sensitive", "questionable", "explicit"]

@@ -1,0 +1,46 @@
+# Inkbunny — furry art behind a session id rather than an API key. Verified live
+# 2026-09-17: api_search.php answers JSON over GET, 3,600 pages, page 2 disjoint.
+# A guest session only ever returns rating_id 0, so use your own account's sid:
+#   curl 'https://inkbunny.net/api_login.php?username=YOU&password=PW&ratingsmask=11111'
+#   export INKBUNNY_SID=<sid from that response>   # expires after a few idle hours
+# Only the thumbnails carry dimensions; they are aspect-correct, so they are
+# mapped to keep tiles the right shape, but they understate the real size.
+id = "inkbunny"
+label = "Inkbunny"
+category = "adult"
+# Declared adult, which is what makes every row it returns carry `nsfw`.
+# Without this the category said "adult" and the ROWS said nothing, so
+# switching adult content off hid the source from the filter list and left
+# its pictures in the wall.
+adult = true
+
+[request]
+url = "https://inkbunny.net/api_search.php?submissions_per_page={limit}&page={page}&text={query}&type=1&random=no&get_rid=no"
+limit = 50
+format = "json"
+root = "submissions"
+
+[auth]
+vars = ["INKBUNNY_SID"]
+query = "&sid={INKBUNNY_SID}"
+hint = "https://inkbunny.net/api_login.php?username=YOU&password=PW&ratingsmask=11111 returns the sid"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "submission_id"
+url = "file_url_full"
+thumb = "thumbnail_url_medium_noncustom"
+sample = "file_url_screen"
+width = "thumb_huge_noncustom_x"
+height = "thumb_huge_noncustom_y"
+title = "title"
+author = "username"
+page_url = "https://inkbunny.net/s/{submission_id}"
+# 0 General, 1 Nudity/Mature, 2 Violence, 3 Strong.
+rating = "rating_id"
+nsfw_ratings = ["1", "2", "3"]

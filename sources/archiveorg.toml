@@ -1,0 +1,26 @@
+# Internet Archive — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "archiveorg"
+label = "Internet Archive"
+category = "photography"
+
+[request]
+url = "https://archive.org/advancedsearch.php?q={query}+AND+mediatype%3Aimage&fl%5B%5D=identifier&fl%5B%5D=title&rows={limit}&page={page}&output=json"
+limit = 40
+format = "json"
+root = "response.docs"
+browse_term = "poster"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "identifier"
+url = "https://archive.org/services/img/{identifier}"
+title = "title"
+# No page of its own in this API — the file is the thing.
+page_url = "https://archive.org/services/img/{identifier}"

@@ -1,0 +1,27 @@
+# Shikimori — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "shikimori"
+label = "Shikimori"
+category = "art"
+
+[request]
+url = "https://shikimori.one/api/animes?limit={limit}&page={page}&order=popularity"
+limit = 40
+format = "json"
+
+[capabilities]
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "https://shikimori.one{image.original}"
+# The host, same as `url` above. `image.preview` is a root-relative path
+# (`/system/animes/preview/37446.jpg`), and a URL with no host cannot be
+# fetched at all — 2,080 rows drew as empty frames with nothing in any log.
+thumb = "https://shikimori.one{image.preview}"
+title = "name"
+page_url = "url"

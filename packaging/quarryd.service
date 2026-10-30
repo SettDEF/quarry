@@ -1,0 +1,26 @@
+# Optional, and off unless you enable it.
+#
+# The launcher starts the daemon on demand in ~4 ms, so this buys nothing for
+# opening the app. It exists for the things that have to happen while the app is
+# closed, none of which have landed yet:
+#
+#   · scheduled crawls        (a systemd *timer* may suit that better)
+#   · query subscriptions     — notify when new matches appear
+#   · wallpaper rotation      — a rotation pool that is a query
+#
+# Until one of those exists, leaving this disabled costs you nothing.
+
+[Unit]
+Description=quarry daemon — catalogue, crawler and image pipeline
+Documentation=file:///usr/share/doc/quarry/PROTOCOL.md
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/quarryd --quiet
+Restart=on-failure
+RestartSec=2
+# It only ever writes to the cache and state directories it is given.
+Environment=RUST_BACKTRACE=0
+
+[Install]
+WantedBy=default.target

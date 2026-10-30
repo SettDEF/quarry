@@ -1,0 +1,27 @@
+{
+  "id": "fourchan",
+  "name": "4chan",
+  "version": "1.0",
+  "author": "quarry",
+  "icon": "forum",
+  "description": "A board reader. Browse boards and catalogues, read threads with their replies, and pull any image straight into the catalogue. Read-only, through the public JSON API, one request a second.",
+  "entry": "Main.qml",
+  "sources": ["4chan", "fourchan"],
+  "rail": true,
+  "defaultSkin": "quarry",
+  "skins": [
+    {
+      "id": "quarry",
+      "name": "Quarry",
+      "description": "The app's own surfaces — cards on layer 1, the same colours as everything else.",
+      "entry": "skins/Quarry.qml"
+    },
+    {
+      "id": "yotsuba",
+      "name": "Yotsuba",
+      "description": "The board's own look, cream and maroon, laid out as the site lays it out.",
+      "entry": "skins/Yotsuba.qml"
+    }
+  ],
+  "enabledByDefault": true
+}

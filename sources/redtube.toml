@@ -1,0 +1,216 @@
+# RedTube — keyless JSON, 200k+ results. Verified live 2026-09-17: empty search
+# browses newest, 20 rows a page, page 2 disjoint from page 1.
+# Rows are wrapped one level deep (`videos[].video`), hence the prefixed paths.
+# Poster frames only, like eporner.toml; `thumbs` runs small-to-large.
+id = "redtube"
+label = "RedTube"
+category = "adult"
+adult = true
+# A video, even though what the API hands over is its poster. Poster frames only, like pornhub: the viewer resolves the page when you open one.
+family = "video"
+
+[request]
+url = "https://api.redtube.com/?data=redtube.Videos.searchVideos&output=json&search={query}&ordering={sort}&page={page}&thumbsize=all"
+limit = 20
+format = "json"
+root = "videos"
+
+[request.sort]
+default = "featured"
+new = "newest"
+large = "mostviewed"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = true
+
+[map]
+id = "video.video_id"
+url = "video.thumbs[-1].src"
+width = "video.thumbs[-1].width"
+height = "video.thumbs[-1].height"
+title = "video.title"
+page_url = "video.url"
+# The site's own tags on every video, so `tag:` and "Search its tags" work.
+tags = "video.tags[].tag_name"
+
+# The site's whole lists (111 categories, 909 tags on 2026-10-23), fetched by
+# the daemon in the background; the hand-written sections below show first.
+[[sections_from]]
+group = "Categories"
+url = "https://api.redtube.com/?data=redtube.Categories.getCategoriesList&output=json"
+root = "categories"
+label = "category"
+
+[[sections_from]]
+group = "Tags"
+url = "https://api.redtube.com/?data=redtube.Tags.getTagList&output=json"
+root = "tags"
+label = "tag.tag_name"
+
+# THE SITE'S OWN TABLE OF CONTENTS, as things you can pick.
+# Categories run the site's own search for that word — pornhub's
+# `category=` parameter rejects ids from its own categories endpoint
+# (probed 2026-09-17: "Category does not exist!" for every valid id),
+# so the name goes through the search, which does work.
+
+[[sections]]
+group = "Sort"
+label = "Featured"
+q = "sort:relevance"
+
+[[sections]]
+group = "Sort"
+label = "Newest"
+q = "sort:new"
+
+[[sections]]
+group = "Sort"
+label = "Most viewed"
+q = "sort:large"
+
+[[sections]]
+group = "Categories"
+label = "amateur"
+
+[[sections]]
+group = "Categories"
+label = "anal"
+
+[[sections]]
+group = "Categories"
+label = "arab"
+
+[[sections]]
+group = "Categories"
+label = "asian"
+
+[[sections]]
+group = "Categories"
+label = "babe"
+
+[[sections]]
+group = "Categories"
+label = "bbw"
+
+[[sections]]
+group = "Categories"
+label = "black"
+
+[[sections]]
+group = "Categories"
+label = "blonde"
+
+[[sections]]
+group = "Categories"
+label = "blowjob"
+
+[[sections]]
+group = "Categories"
+label = "bondage"
+
+[[sections]]
+group = "Categories"
+label = "brazilian"
+
+[[sections]]
+group = "Categories"
+label = "british"
+
+[[sections]]
+group = "Categories"
+label = "brunette"
+
+[[sections]]
+group = "Categories"
+label = "bukkake"
+
+[[sections]]
+group = "Categories"
+label = "cartoon"
+
+[[sections]]
+group = "Categories"
+label = "casting"
+
+[[sections]]
+group = "Categories"
+label = "celebrity"
+
+[[sections]]
+group = "Categories"
+label = "compilation"
+
+[[sections]]
+group = "Categories"
+label = "cosplay"
+
+[[sections]]
+group = "Categories"
+label = "creampie"
+
+[[sections]]
+group = "Categories"
+label = "cuckold"
+
+[[sections]]
+group = "Categories"
+label = "cumshot"
+
+[[sections]]
+group = "Categories"
+label = "czech"
+
+[[sections]]
+group = "Categories"
+label = "deepthroat"
+
+[[sections]]
+group = "Categories"
+label = "ebony"
+
+[[sections]]
+group = "Categories"
+label = "euro"
+
+[[sections]]
+group = "Categories"
+label = "feet"
+
+[[sections]]
+group = "Categories"
+label = "fetish"
+
+[[sections]]
+group = "Categories"
+label = "ffm"
+
+[[sections]]
+group = "Categories"
+label = "fingering"
+
+[[sections]]
+group = "Categories"
+label = "fisting"
+
+[[sections]]
+group = "Categories"
+label = "fmm"
+
+[[sections]]
+group = "Categories"
+label = "french"
+
+[[sections]]
+group = "Categories"
+label = "funny"
+
+[[sections]]
+group = "Categories"
+label = "gaming"
+
+[[sections]]
+group = "Categories"
+label = "gangbang"

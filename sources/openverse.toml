@@ -1,0 +1,49 @@
+# Openverse — Creative Commons images from Flickr, Wikimedia, museums and more,
+# behind one search. This is the source for "a picture I am allowed to use":
+# every row carries the licence it came with (`by`, `by-nc-nd`, `cc0`, …), so
+# `license:cc0` is a real filter rather than a hope.
+#
+# It answered 401 without a registered client for a while and was dropped from
+# the shipped set because of it; re-verified live 2026-08-31, 240 results for
+# `forest`, no key, no header.
+
+id = "openverse"
+label = "Openverse (CC)"
+category = "photography"
+
+[request]
+url = "https://api.openverse.org/v1/images/?q={query}&creator={author}&page={page}&page_size={limit}"
+# 20 is the ceiling for an anonymous client, and asking for more is a 401 with
+# `page_size may not exceed 20 for anonymous requests` — not a rate limit, a
+# hard cap. Registering a client raises it; this ships working without one.
+limit = 20
+format = "json"
+root = "results"
+# Its search wants a term; without one it answers an unhelpful sample.
+#
+# `nature` rather than `landscape photography`: on 2026-09-15 the CDN was
+# serving page 1's rows for page 2 of that exact query (cf-cache HIT, age
+# 7401s), so the home feed stalled on its second turn. `nature` paged cleanly.
+# Anonymous clients get 12 pages (240 rows) of any query, so this feed ends
+# there — that ceiling is the API's, not quarry's.
+browse_term = "nature"
+
+[capabilities]
+# `creator=` is a real filter on the API, verified live.
+author = true
+text = true
+tags = true
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "url"
+thumb = "thumbnail"
+title = "title"
+page_url = "foreign_landing_url"
+author = "creator"
+license = "license"
+width = "width"
+height = "height"
+bytes = "filesize"

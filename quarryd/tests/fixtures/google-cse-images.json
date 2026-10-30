@@ -1,0 +1,91 @@
+{
+  "kind": "customsearch#search",
+  "url": {
+    "type": "application/json",
+    "template": "https://www.googleapis.com/customsearch/v1?q={searchTerms}&searchType=image"
+  },
+  "queries": {
+    "request": [
+      {
+        "title": "Google Custom Search - mountain lake",
+        "totalResults": "9420000",
+        "searchTerms": "mountain lake",
+        "count": 10,
+        "startIndex": 1,
+        "searchType": "image",
+        "cx": "0123:abcd"
+      }
+    ],
+    "nextPage": [
+      {
+        "title": "Google Custom Search - mountain lake",
+        "totalResults": "9420000",
+        "searchTerms": "mountain lake",
+        "count": 10,
+        "startIndex": 11,
+        "searchType": "image",
+        "cx": "0123:abcd"
+      }
+    ]
+  },
+  "searchInformation": {
+    "searchTime": 0.31,
+    "formattedSearchTime": "0.31",
+    "totalResults": "9420000",
+    "formattedTotalResults": "9,420,000"
+  },
+  "items": [
+    {
+      "kind": "customsearch#result",
+      "title": "A mountain lake at dawn",
+      "htmlTitle": "A <b>mountain lake</b> at dawn",
+      "link": "https://photos.example.org/full/lake.jpg",
+      "displayLink": "photos.example.org",
+      "snippet": "Still water under the first light",
+      "mime": "image/jpeg",
+      "fileFormat": "image/jpeg",
+      "image": {
+        "contextLink": "https://photos.example.org/gallery/lake",
+        "height": 1600,
+        "width": 2133,
+        "byteSize": 481923,
+        "thumbnailLink": "https://encrypted-tbn0.example.net/images?q=fake1",
+        "thumbnailHeight": 112,
+        "thumbnailWidth": 150
+      }
+    },
+    {
+      "kind": "customsearch#result",
+      "title": "A row whose image link never made it into the answer",
+      "displayLink": "broken.example.net",
+      "snippet": "Skipped rather than catalogued as a broken tile.",
+      "image": {
+        "contextLink": "https://broken.example.net/page",
+        "height": 0,
+        "width": 0,
+        "byteSize": 0,
+        "thumbnailLink": "",
+        "thumbnailHeight": 0,
+        "thumbnailWidth": 0
+      }
+    },
+    {
+      "kind": "customsearch#result",
+      "title": "A red car on a wet street",
+      "htmlTitle": "A <b>red car</b> on a wet street",
+      "link": "https://cars.example.com/img/hatchback.png",
+      "snippet": "Hatchback, evening",
+      "mime": "image/png",
+      "fileFormat": "image/png",
+      "image": {
+        "contextLink": "https://cars.example.com/red/hatchback",
+        "height": 1080,
+        "width": 1920,
+        "byteSize": 902144,
+        "thumbnailLink": "https://encrypted-tbn0.example.net/images?q=fake2",
+        "thumbnailHeight": 84,
+        "thumbnailWidth": 150
+      }
+    }
+  ]
+}

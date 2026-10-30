@@ -1,0 +1,32 @@
+# ambientCG — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "ambientcg"
+label = "ambientCG"
+category = "3d"
+# A material's maps are pictures, not a mesh.
+# `family` is what the file IS; `kind` is what it is FOR. Everything
+# here used to be family=model with no kind at all, so 3,188 textures,
+# HDRIs and meshes alike defaulted to kind=avatar and the rail counted
+# every one of them as a 3D model.
+family = "raster"
+kind = "texture"
+
+[request]
+url = "https://ambientcg.com/api/v2/full_json?type=Material&limit={limit}&offset={offset}&include=downloadData,previewData"
+limit = 40
+format = "json"
+root = "foundAssets"
+
+[capabilities]
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "assetId"
+url = "previewImage.256-PNG"
+title = "assetId"
+# No page of its own in this API — the file is the thing.
+page_url = "previewImage.256-PNG"

@@ -1,0 +1,27 @@
+# Star Wars visual guide — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "starwars_api"
+label = "Star Wars visual guide"
+category = "art"
+
+[request]
+url = "https://akabab.github.io/starwars-api/api/all.json#page={page_value}"
+limit = 40
+format = "json"
+# Everything in one answer: one page, and the token that says so
+# rides in the fragment, which is never sent to the server.
+page_values = ["1"]
+
+[capabilities]
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "image"
+title = "name"
+# No page of its own in this API — the file is the thing.
+page_url = "image"

@@ -1,0 +1,51 @@
+# Manebooru — another Philomena board, and a manifest that cost four minutes.
+#
+# Worth having for the same reason Furbooru is: the engine is identical, so the
+# only thing being added is a catalogue. It is tagged `art` rather than `adult`
+# — its default filter is safe, and shipping it as adult would hide it from
+# exactly the people it suits.
+
+id = "manebooru"
+label = "Manebooru"
+category = "art"
+
+[request]
+url = "https://manebooru.art/api/v1/json/search/images?q={query}&per_page={limit}&page={page}"
+tag_resolver = "philomena"
+# Its creator is a tag, the way the board files it.
+author_tag = "artist:{author}"
+limit = 50
+format = "json"
+root = "images"
+# `*` is Philomena for "everything", newest first — a feed that pages forever.
+# An empty `q` answers zero rows, and `wallpaper` was a topic, not a feed.
+browse_term = "*"
+# Tags here may contain spaces, so terms are joined with a comma.
+joiner = ","
+video_tag = "mime_type:video/webm"
+
+[capabilities]
+author = true
+text = true
+tags = true
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "representations.full"
+thumb = "representations.thumb"
+sample = "representations.medium"
+title = "description"
+width = "width"
+height = "height"
+bytes = "size"
+tags = "tags"
+# The post's own page, not the listing: without this every row's "open source
+# page" went to the same place.
+page_url = "https://manebooru.art/images/{id}"
+# The rating is one of the tags. Manebooru is safe throughout today (`*` and
+# `safe` both counted 1,002,184 on 2026-09-15), so this marks nothing now — it
+# is here so the day that changes, `-nsfw` still means what it says.
+rating = "tags"
+nsfw_ratings = ["suggestive", "questionable", "explicit", "grimdark", "semi-grimdark", "grotesque"]

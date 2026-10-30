@@ -1,0 +1,52 @@
+# yande.re — high-resolution scans, the same shape as every other booru.
+#
+# Replaced Openverse in the shipped set: Openverse's API began answering 401
+# without a registered client, and a source that cannot work out of the box is
+# a bad example to ship as one.
+
+id = "yandere"
+label = "yande.re"
+category = "art"
+
+[request]
+url = "https://yande.re/post.json?limit={limit}&page={page}&tags={tags}"
+# "by this person", in this board's own vocabulary.
+#
+# A plain tag, NOT `artist:{author}` — measured on Danbooru 2026-09-23:
+# `tags=wlop` answers 5 rows and `tags=artist:wlop` answers 0. The philomena
+# boards (derpibooru and friends) are the ones that want the namespace, and
+# they already declare it.
+author_tag = "{author}"
+tag_resolver = "moebooru"
+limit = 40
+format = "json"
+root = ""
+# Moebooru's rating metatag — `rating:s` answered 40 of 40 safe and `-rating:s`
+# 40 of 40 not (verified 2026-09-15). Naming both makes `-nsfw` a query rather
+# than a page of rows discarded locally.
+sfw_tag = "rating:s"
+nsfw_tag = "-rating:s"
+
+[capabilities]
+text = true
+tags = true
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "file_url"
+thumb = "preview_url"
+# Same Moebooru API as konachan.toml — verified live, 2026-08-30 (post
+# 1268051: 6068x9042 original -> 1007x1500 sample).
+sample = "sample_url"
+width = "width"
+height = "height"
+tags = "tags"
+tags_separator = " "
+# The post's own page, not the listing: without this every row's "open source
+# page" went to the same place.
+page_url = "https://yande.re/post/show/{id}"
+# Moebooru ratings: s(afe), q(uestionable), e(xplicit).
+rating = "rating"
+nsfw_ratings = ["q", "e"]

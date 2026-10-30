@@ -1,0 +1,39 @@
+# Wikimedia Commons — the largest freely-licensed photo library there is, and
+# the originals are the ACTUAL originals: 5898x3443 for the first result of
+# `landscape`, not a re-upload of a re-upload.
+#
+# Two things make this manifest unusual. `query.pages` is an object keyed by
+# page id rather than an array — MediaWiki returns a store, not a list — which
+# is why the loader accepts an object root. And `iiurlwidth` asks the wiki to
+# render a thumbnail for us, so the wall never has to touch a 20 MB TIFF.
+
+id = "wikimedia"
+label = "Wikimedia Commons"
+category = "photography"
+
+[request]
+url = "https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrsearch={query}&gsrnamespace=6&gsrlimit={limit}&gsroffset={offset}&prop=imageinfo&iiprop=url%7Csize%7Cmime&iiurlwidth=800"
+limit = 40
+format = "json"
+root = "query.pages"
+browse_term = "featured picture landscape"
+# The same search, restricted to video — and it is very good video: 4K CC-licensed
+# webm nature footage, with MediaWiki rendering the poster frame for us. The best
+# SFW video source there is, from a source already shipped.
+video_tag = "filetype:video"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "pageid"
+url = "imageinfo[0].url"
+thumb = "imageinfo[0].thumburl"
+title = "title"
+page_url = "imageinfo[0].descriptionurl"
+width = "imageinfo[0].width"
+height = "imageinfo[0].height"
+bytes = "imageinfo[0].size"

@@ -1,0 +1,29 @@
+# OpenMoji — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "openmoji"
+label = "OpenMoji"
+category = "icons"
+family = "vector"
+
+[request]
+url = "https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json#page={page_value}"
+limit = 40
+format = "json"
+# Everything in one answer: one page, and the token that says so
+# rides in the fragment, which is never sent to the server.
+page_values = ["1"]
+
+[capabilities]
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "hexcode"
+url = "https://cdn.jsdelivr.net/gh/hfg-gmuend/openmoji@master/color/svg/{hexcode}.svg"
+title = "annotation"
+tags = "tags"
+# No page of its own in this API — the file is the thing.
+page_url = "https://cdn.jsdelivr.net/gh/hfg-gmuend/openmoji@master/color/svg/{hexcode}.svg"

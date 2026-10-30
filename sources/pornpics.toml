@@ -1,0 +1,55 @@
+# PornPics — galleries of stills rather than video, which is what makes it worth
+# having beside the tube sites: quarry is a picture engine first, and every row
+# here is a real photograph at full size.
+#
+# Read from its search listing. Verified live 2026-09-19: `li.thumbwook` per
+# gallery, the poster on `img[data-src]` (the `src` is a 1px placeholder), and
+# the gallery id on the anchor.
+id = "pornpics"
+label = "PornPics"
+category = "adult"
+adult = true
+family = "raster"
+
+[request]
+url = "https://www.pornpics.com/?q={query}&limit=40&offset={offset}"
+format = "html"
+limit = 40
+space = "+"
+browse_term = "milf"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[html]
+row = "li.thumbwook"
+base = "https://www.pornpics.com"
+
+[html.fields]
+id = { sel = "a.rel-link", attr = "data-gid" }
+page = { sel = "a.rel-link", attr = "href" }
+# `data-src`, not `src`: the img ships a 1px placeholder and lazy-loads.
+thumb = { sel = "img", attr = "data-src" }
+title = { sel = "img", attr = "alt" }
+
+[map]
+id = "id"
+url = "thumb"
+thumb = "thumb"
+title = "title"
+page_url = "page"
+
+[[sections]]
+group = "Popular"
+label = "milf"
+
+[[sections]]
+group = "Popular"
+label = "teen"
+
+[[sections]]
+group = "Popular"
+label = "asian"

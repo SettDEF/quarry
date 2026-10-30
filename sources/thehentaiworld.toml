@@ -1,0 +1,37 @@
+# thehentaiworld.com — WordPress, read through its own REST API rather than a
+# booru engine. Verified live 2026-09-17: 151,136 media across 3,023 pages,
+# pages 1, 2 and 50 all distinct, `search=` works and empty browses newest.
+# Worth having for the video: roughly a fifth of every page is a real mp4 with
+# width, height and `length` published, so those rows play rather than posing.
+
+id = "thehentaiworld"
+label = "The Hentai World"
+category = "adult"
+adult = true
+
+[request]
+url = "https://thehentaiworld.com/wp-json/wp/v2/media?page={page}&per_page={limit}&search={query}"
+limit = 50
+format = "json"
+root = ""
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "source_url"
+thumb = "media_details.sizes.thumbnail.source_url"
+width = "media_details.width"
+height = "media_details.height"
+title = "title.rendered"
+# The attachment's own page, not the listing.
+page_url = "link"
+bytes = "media_details.filesize || filesize"
+# Videos publish their length; stills have no such key, so this stays 0 for them.
+duration = "media_details.length"
+# The file URL's extension is right here, but the row states the type outright.
+ext = "mime_type"

@@ -1,0 +1,48 @@
+# GIPHY — animated GIFs and stickers. Needs a free API key.
+#
+# Unkeyed it answers 401 `{"meta":{"status":401,"msg":"Unauthorized"}}`
+# (verified live 2026-09-15), so this loads only with $GIPHY_API_KEY set. The
+# mapping follows the documented `gifs/search` shape, not a keyed capture.
+#
+# The GIF, not the mp4 rendition: a GIF is a raster that is animated here, so it
+# thumbnails, crops and exports like any picture, where an mp4 would take the
+# video path for something that is a three-second loop.
+#
+# GIPHY rates every row g / pg / pg-13 / r and returns all of them unless asked,
+# so `r` rows are marked. Search wants a term; offsets stop at 4,999.
+
+id = "giphy"
+label = "GIPHY"
+category = "video"
+
+[request]
+url = "https://api.giphy.com/v1/gifs/search?q={query}&offset={offset}&limit={limit}"
+limit = 50
+format = "json"
+root = "data"
+browse_term = "aesthetic"
+
+[auth]
+vars = ["GIPHY_API_KEY"]
+query = "&api_key={GIPHY_API_KEY}"
+hint = "https://developers.giphy.com/dashboard/ — create an API app, copy its key"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "images.original.url"
+thumb = "images.fixed_width.url"
+sample = "images.downsized_medium.url"
+title = "title"
+author = "username"
+page_url = "url"
+width = "images.original.width"
+height = "images.original.height"
+bytes = "images.original.size"
+rating = "rating"
+nsfw_ratings = ["r"]

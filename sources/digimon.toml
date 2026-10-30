@@ -1,0 +1,25 @@
+# Digimon — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "digimon"
+label = "Digimon"
+category = "art"
+
+[request]
+url = "https://digi-api.com/api/v1/digimon?pageSize={limit}&page={page}"
+limit = 40
+format = "json"
+root = "content"
+
+[capabilities]
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "image"
+title = "name"
+# No page of its own in this API — the file is the thing.
+page_url = "image"

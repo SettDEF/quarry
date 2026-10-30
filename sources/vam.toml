@@ -1,0 +1,48 @@
+# The Victoria and Albert Museum — 1.4 million objects, keyless, with a IIIF
+# server behind every one that has a picture.
+#
+# Probed live 2026-10-08:
+#   /v2/objects/search?q=portrait&images_exist=1&page_size=5  → 200, 22,927 bytes
+#   framemark.vam.ac.uk/collections/<id>/full/!1600,1600/...  → 200, 294,805 bytes
+#
+# THE FULL-SIZE PICTURE IS NOT IN THE PAYLOAD, which is the one thing to know
+# here. A record carries `_primary_thumbnail` — a 100px square, useless for
+# anything but a list — and an image id. The real file is served by IIIF, whose
+# URL is built from that id, so `url` is a template rather than a field. The
+# `!1600,1600` asks for "fit inside this box", which keeps the aspect ratio;
+# `1600,1600` without the bang would stretch it.
+#
+# `images_exist=1` is not optional: without it most of the collection comes back
+# with nothing to show, which on a wall is a screen of empty cells.
+
+id = "vam"
+label = "Victoria & Albert Museum"
+category = "photography"
+
+[request]
+url = "https://api.vam.ac.uk/v2/objects/search?q={query}&images_exist=1&page={page}&page_size={limit}"
+limit = 45
+format = "json"
+root = "records"
+browse_term = "portrait"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "systemNumber"
+# Built from the image id — see the note above. 1600 on the long edge is the
+# largest size that comes back quickly; the server will go further on request.
+url = "https://framemark.vam.ac.uk/collections/{_primaryImageId}/full/!1600,1600/0/default.jpg"
+thumb = "https://framemark.vam.ac.uk/collections/{_primaryImageId}/full/!400,400/0/default.jpg"
+sample = "https://framemark.vam.ac.uk/collections/{_primaryImageId}/full/!800,800/0/default.jpg"
+# `_primaryTitle` is empty for a great many objects — a drawing catalogued by
+# what it is rather than by a name — so the object type stands in. A row with no
+# title at all is one you cannot search for afterwards.
+title = "_primaryTitle || objectType"
+page_url = "https://collections.vam.ac.uk/item/{systemNumber}/"
+author = "_primaryMaker.name"
+license = "=See the V&A's terms for each object"

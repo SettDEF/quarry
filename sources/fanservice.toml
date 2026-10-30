@@ -1,0 +1,46 @@
+# fanservice.fan — Shimmie board, read from its listing HTML.
+# Verified live 2026-09-17: 48 rows a page, page 2 shares no id with page 1, and
+# every row states its own width, height, tags and MIME type.
+# The listing links the post, not the file, so the file URL is the thumbnail's
+# with `_thumbs/…/thumb.webp` swapped for `_images/…` (HEAD-checked 200).
+# No per-row rating on this board, so `adult = true`.
+
+id = "fanservice"
+label = "Fanservice.fan"
+category = "adult"
+adult = true
+
+[request]
+url = "https://fanservice.fan/post/list/{query}/{page}"
+format = "html"
+limit = 48
+# The term is a path segment, where "+" would be a literal plus.
+space = "%20"
+
+[capabilities]
+text = true
+tags = true
+
+[html]
+row = "a.shm-thumb"
+
+[html.fields]
+id = { attr = "data-post-id" }
+width = { attr = "data-width" }
+height = { attr = "data-height" }
+tags = { attr = "data-tags" }
+mime = { attr = "data-mime" }
+thumb = { sel = "img", attr = "src" }
+
+[map]
+id = "id"
+url = "{thumb|replace:/_thumbs/:/_images/|replace:/thumb.webp:}"
+thumb = "thumb"
+# The file URL carries no extension and the host answers image/jpeg for every
+# type, so the row's own MIME is the only thing that knows (a GIF checked live).
+ext = "mime"
+width = "width"
+height = "height"
+tags = "tags"
+tags_separator = " "
+page_url = "https://fanservice.fan/post/view/{id}"

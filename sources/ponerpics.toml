@@ -1,0 +1,49 @@
+# ponerpics.org — Philomena board, keyless JSON.
+# Verified live 2026-09-17: page 2 shares no id with page 1. `filter_id=2` is
+# its "everything" filter — the anonymous default hides 900k of 3.86M images.
+# Rows are marked from the rating tag, as on the other Philomena boards.
+# Unlike derpibooru, its representations are root-relative, so the host is
+# prefixed here.
+
+id = "ponerpics"
+label = "Ponerpics"
+category = "adult"
+# Declared adult, which is what makes every row it returns carry `nsfw`.
+# Without this the category said "adult" and the ROWS said nothing, so
+# switching adult content off hid the source from the filter list and left
+# its pictures in the wall.
+adult = true
+
+[request]
+url = "https://ponerpics.org/api/v1/json/search/images?q={query}&per_page={limit}&page={page}&filter_id=2"
+tag_resolver = "philomena"
+# Its creator is a tag, the way the board files it.
+author_tag = "artist:{author}"
+limit = 50
+format = "json"
+root = "images"
+browse_term = "*"
+# A Philomena tag may contain a space, so terms are joined with a comma.
+joiner = ","
+video_tag = "mime_type:video/webm"
+
+[capabilities]
+author = true
+text = true
+tags = true
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "https://ponerpics.org{representations.full}"
+thumb = "https://ponerpics.org{representations.thumb}"
+sample = "https://ponerpics.org{representations.medium}"
+title = "description"
+width = "width"
+height = "height"
+bytes = "size"
+tags = "tags"
+page_url = "https://ponerpics.org/images/{id}"
+rating = "tags"
+nsfw_ratings = ["suggestive", "questionable", "explicit", "grimdark", "semi-grimdark", "grotesque"]

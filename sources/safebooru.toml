@@ -1,0 +1,54 @@
+# Safebooru — the same API shape as danbooru, gelbooru and a dozen mirrors.
+#
+# This one exists as a manifest rather than Rust precisely because it is
+# unremarkable: a URL, a page number, and which JSON field holds the image.
+# Copying it to ~/.config/quarry/sources/ and changing the host is how you add
+# another booru.
+
+id = "safebooru"
+label = "Safebooru"
+category = "art"
+kind = "avatar"
+
+[request]
+url = "https://safebooru.org/index.php?page=dapi&s=post&q=index&json=1&limit={limit}&pid={page0}&tags={tags}"
+# "by this person", in this board's own vocabulary.
+#
+# A plain tag, NOT `artist:{author}` — measured on Danbooru 2026-09-23:
+# `tags=wlop` answers 5 rows and `tags=artist:wlop` answers 0. The philomena
+# boards (derpibooru and friends) are the ones that want the namespace, and
+# they already declare it.
+author_tag = "{author}"
+tag_resolver = "gelbooru"
+limit = 50
+format = "json"
+# Its posts endpoint answers with a bare array.
+root = ""
+# An empty tag list returns the front page, so no browse term is needed.
+
+[capabilities]
+text = true
+tags = true
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "file_url"
+thumb = "preview_url"
+# Real field, verified live 2026-08-30: post 7101748 (sample:true) served
+# 1280x1280 -> 850x850 through sample_url. When a post has no sample
+# (sample:false, most of them) sample_url just echoes file_url, which is
+# harmless — that IS the small version then.
+sample = "sample_url"
+width = "width"
+height = "height"
+tags = "tags"
+tags_separator = " "
+# The post's own page, not the listing: without this every row's "open source
+# page" went to the same place.
+page_url = "https://safebooru.org/index.php?page=post&s=view&id={id}"
+# Everything on a page was `general` when checked (2026-09-15) — the board is
+# safe by policy. Mapped anyway, so a mis-rated post is caught by `-nsfw`.
+rating = "rating"
+nsfw_ratings = ["sensitive", "questionable", "explicit"]

@@ -1,0 +1,36 @@
+# Sketchfab — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "sketchfab"
+label = "Sketchfab"
+category = "3d"
+# Real 3D models.
+# `family` is what the file IS; `kind` is what it is FOR. Everything
+# here used to be family=model with no kind at all, so 3,188 textures,
+# HDRIs and meshes alike defaulted to kind=avatar and the rail counted
+# every one of them as a 3D model.
+family = "model"
+kind = "model"
+
+[request]
+url = "https://api.sketchfab.com/v3/search?type=models&downloadable=true&count={limit}&q={query}#page={page_value}"
+limit = 40
+format = "json"
+# Everything in one answer: one page, and the token that says so
+# rides in the fragment, which is never sent to the server.
+page_values = ["1"]
+root = "results"
+browse_term = "chair"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "uid"
+url = "thumbnails.images[0].url"
+title = "name"
+author = "user.displayName"
+page_url = "viewerUrl"

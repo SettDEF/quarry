@@ -1,0 +1,46 @@
+# yukkuri.shiteitte.net — Danbooru fork, keyless JSON.
+# Verified live 2026-09-17: page 2 shares no id with page 1.
+# Danbooru ratings: g is general, everything else is marked.
+
+id = "yukkuri"
+label = "Yukkuri booru"
+category = "adult"
+# Declared adult, which is what makes every row it returns carry `nsfw`.
+# Without this the category said "adult" and the ROWS said nothing, so
+# switching adult content off hid the source from the filter list and left
+# its pictures in the wall.
+adult = true
+
+[request]
+url = "https://yukkuri.shiteitte.net/posts.json?limit={limit}&page={page}&tags={tags}"
+# "by this person", in this board's own vocabulary.
+#
+# A plain tag, NOT `artist:{author}` — measured on Danbooru 2026-09-23:
+# `tags=wlop` answers 5 rows and `tags=artist:wlop` answers 0. The philomena
+# boards (derpibooru and friends) are the ones that want the namespace, and
+# they already declare it.
+author_tag = "{author}"
+tag_resolver = "danbooru"
+limit = 40
+format = "json"
+root = ""
+
+[capabilities]
+text = true
+tags = true
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "file_url"
+thumb = "preview_file_url"
+sample = "large_file_url"
+width = "image_width"
+height = "image_height"
+bytes = "file_size"
+tags = "tag_string"
+tags_separator = " "
+page_url = "https://yukkuri.shiteitte.net/posts/{id}"
+rating = "rating"
+nsfw_ratings = ["s", "q", "e"]

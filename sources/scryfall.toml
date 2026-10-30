@@ -1,0 +1,28 @@
+# Magic: the Gathering — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "scryfall"
+label = "Magic: the Gathering"
+category = "games"
+
+[request]
+url = "https://api.scryfall.com/cards/search?q={query}&page={page}"
+limit = 40
+format = "json"
+root = "data"
+browse_term = "art"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "image_uris.png"
+thumb = "image_uris.small"
+title = "name"
+author = "artist"
+page_url = "scryfall_uri"
+tags = "keywords"

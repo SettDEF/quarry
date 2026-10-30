@@ -1,0 +1,27 @@
+# Bing wallpaper — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "bingwallpaper"
+label = "Bing wallpaper"
+category = "wallpapers"
+
+[request]
+url = "https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=8&mkt=en-US#page={page_value}"
+limit = 40
+format = "json"
+# Everything in one answer: one page, and the token that says so
+# rides in the fragment, which is never sent to the server.
+page_values = ["1"]
+root = "images"
+
+[capabilities]
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "startdate"
+url = "https://www.bing.com{url}"
+title = "title"
+page_url = "copyrightlink"

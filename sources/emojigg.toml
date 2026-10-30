@@ -1,0 +1,43 @@
+# emoji.gg — 5,450 Discord emoji and animated emotes, keyless, as one 2 MB
+# document.
+#
+# ONE PAGE, ON PURPOSE. The API has no paging (`?page=2` answers the identical
+# 2,065,372 bytes) and rate-limits hard — the fourth request inside a minute was
+# a 429 on 2026-09-15. So it is declared as a single-page list: fetched once,
+# cached, and queried locally, which is how PLAN.md always meant to use it.
+# `{page_value}` is in the URL only because a paged-by-list source needs one;
+# the server ignores it.
+#
+# Category 9 is emoji.gg's own "NSFW" category (from `?request=categories`), so
+# those rows — 51 of them — are marked and `-nsfw` removes them. About half the
+# rows publish no size; they get square tiles, which is what an emote is anyway.
+
+id = "emojigg"
+label = "emoji.gg"
+category = "icons"
+kind = "emote"
+
+[request]
+url = "https://emoji.gg/api/?page={page_value}"
+limit = 5450
+format = "json"
+root = ""
+page_values = ["1"]
+
+[capabilities]
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "image"
+title = "title"
+author = "submitted_by"
+page_url = "https://emoji.gg/emoji/{slug}"
+width = "width"
+height = "height"
+bytes = "filesize"
+rating = "category"
+nsfw_ratings = ["9"]

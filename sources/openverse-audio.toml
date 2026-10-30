@@ -1,0 +1,48 @@
+# Openverse's AUDIO half — the same keyless search, pointed at sound.
+#
+# This is what makes `family:audio` a real thing to browse rather than a column
+# in the schema: Creative Commons music and field recordings from freesound,
+# Jamendo and Wikimedia, each row carrying the licence it came with.
+#
+# Verified live 2026-09-19: 240 results for `piano`, no key, no header. The
+# rows are MP3/FLAC/OGG with a duration in milliseconds and usually NO picture —
+# `thumbnail` is null for most of freesound's, which is why the audio family
+# draws a cover when there is one and says what it is when there is not.
+id = "openverse-audio"
+label = "Openverse (sound)"
+category = "audio"
+family = "audio"
+
+[request]
+url = "https://api.openverse.org/v1/audio/?q={query}&creator={author}&page={page}&page_size={limit}"
+# The same anonymous ceiling as the picture half: 20 a page, 12 pages, and a
+# 401 rather than a clamp if you ask for more.
+limit = 20
+format = "json"
+root = "results"
+# Its search wants a term. `music` pages cleanly and is the broadest thing a
+# sound library is actually full of.
+browse_term = "music"
+
+[capabilities]
+author = true
+text = true
+tags = true
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "url"
+thumb = "thumbnail"
+title = "title"
+page_url = "foreign_landing_url"
+author = "creator"
+license = "license"
+bytes = "filesize"
+# Jamendo's URLs carry no extension at all, so the file type has to come from
+# the API rather than from the end of a URL — without this a track filed as
+# "…?trackid=923463&format=mp32" gets an extension of "com".
+ext = "filetype"
+# Milliseconds, as the API gives it — the tile prints it as a clock.
+duration_ms = "duration"

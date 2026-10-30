@@ -1,0 +1,46 @@
+# Unsplash — the photographs half the internet's wallpapers came from. Needs a
+# free "Access Key" from a registered (demo-tier) application.
+#
+# Without one the API answers 401 `OAuth error: The access token is invalid`
+# (verified live 2026-09-15), so this loads only with $UNSPLASH_ACCESS_KEY set,
+# passed as `client_id`, which Unsplash accepts in place of the header. The
+# mapping follows the documented `search/photos` shape, not a keyed capture.
+#
+# Search needs a term, hence the browse term. A demo-tier key allows 50
+# requests an hour, and `per_page` stops at 30.
+
+id = "unsplash"
+label = "Unsplash"
+category = "wallpapers"
+
+[request]
+url = "https://api.unsplash.com/search/photos?query={query}&page={page}&per_page={limit}"
+limit = 30
+format = "json"
+root = "results"
+browse_term = "wallpaper"
+
+[auth]
+vars = ["UNSPLASH_ACCESS_KEY"]
+query = "&client_id={UNSPLASH_ACCESS_KEY}"
+hint = "https://unsplash.com/oauth/applications — create an app, copy its Access Key"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+# `full` is the original at full size as a JPEG; `raw` is the same pixels with
+# no format applied, which some viewers cannot open.
+url = "urls.full"
+thumb = "urls.small"
+sample = "urls.regular"
+title = "alt_description || description"
+author = "user.name"
+page_url = "links.html"
+width = "width"
+height = "height"
+license = "=Unsplash License"

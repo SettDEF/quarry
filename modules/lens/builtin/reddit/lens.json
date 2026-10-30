@@ -1,0 +1,28 @@
+{
+  "id": "reddit",
+  "name": "Reddit",
+  "version": "1.0",
+  "author": "quarry",
+  "icon": "forum",
+  "iconImage": "icon.svg",
+  "description": "Reddit as a reader: subreddits, their listings in the site's own orderings, and the thing a picture site cannot show you — the comments, threaded, collapsible, with the rest of a deep chain fetched on demand. Read-only, through the public JSON, one request a second.",
+  "entry": "Main.qml",
+  "sources": ["reddit"],
+  "rail": true,
+  "defaultSkin": "quarry",
+  "skins": [
+    {
+      "id": "quarry",
+      "name": "Quarry",
+      "description": "The app's own surfaces — cards on layer 1, the same colours as everything else.",
+      "entry": "skins/Quarry.qml"
+    },
+    {
+      "id": "orangered",
+      "name": "Orangered",
+      "description": "The site's own shape: a dark column of cards, the vote score up the side, orangered where you press.",
+      "entry": "skins/Orangered.qml"
+    }
+  ],
+  "enabledByDefault": false
+}

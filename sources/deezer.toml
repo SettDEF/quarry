@@ -1,0 +1,28 @@
+# Deezer album art — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "deezer"
+label = "Deezer album art"
+category = "art"
+
+[request]
+url = "https://api.deezer.com/search/album?q={query}&limit={limit}&index={offset}"
+limit = 40
+format = "json"
+root = "data"
+browse_term = "ambient"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "cover_xl"
+thumb = "cover_medium"
+title = "title"
+author = "artist.name"
+# No page of its own in this API — the file is the thing.
+page_url = "cover_xl"

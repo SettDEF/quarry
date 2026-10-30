@@ -1,0 +1,56 @@
+# Derpibooru — 2.4 million images on the Philomena engine, keyless, and 36,142
+# of them are webm video.
+#
+# THE FILTER ID IS THE WHOLE SOURCE. Anonymous requests get Derpibooru's
+# default filter, which hides most of the site: the same query answered 111
+# results by default and 21,104 with `filter_id=56027` (their "Everything"
+# filter). A source that silently returns 0.5% of itself is worse than one that
+# fails, because nothing looks wrong.
+#
+# Marked adult because "everything" is exactly what that filter means.
+
+id = "derpibooru"
+label = "Derpibooru"
+category = "adult"
+adult = true
+
+[request]
+url = "https://derpibooru.org/api/v1/json/search/images?q={query}&per_page={limit}&page={page}&filter_id=56027"
+tag_resolver = "philomena"
+# Its creator is a tag, the way the board files it.
+author_tag = "artist:{author}"
+limit = 50
+format = "json"
+root = "images"
+# `*` is Philomena for "everything", newest first — a feed that pages forever.
+# An empty `q` answers zero rows, and `wallpaper` was a topic, not a feed.
+browse_term = "*"
+# Tags here may contain spaces, so terms are joined with a comma.
+joiner = ","
+# Philomena indexes the MIME type, so "only video" is exact here rather than a
+# convention — no guessing from a file extension.
+video_tag = "mime_type:video/webm"
+
+[capabilities]
+author = true
+text = true
+tags = true
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "representations.full"
+thumb = "representations.thumb"
+sample = "representations.medium"
+title = "description"
+width = "width"
+height = "height"
+bytes = "size"
+tags = "tags"
+# The post's own page, not the listing: without this every row's "open source
+# page" went to the same place.
+page_url = "https://derpibooru.org/images/{id}"
+# `duration` is deliberately NOT mapped: Philomena reports 0.04 for a still,
+# which would print "0:00" under every picture. The daemon measures video with
+# ffprobe, and a length nobody measured is worse than none.

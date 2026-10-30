@@ -1,0 +1,40 @@
+# svgl — about 670 brand and product logos as clean SVG, keyless.
+#
+# PAGED BY CATEGORY, like peapix is paged by market. The API has a `limit` and
+# no offset, so "page 2" does not exist; what it does have is
+# `/category/<name>`, and walking the categories is walking the library. The
+# order below is largest first, so the first pages carry the most. A logo in two
+# categories comes back twice and is merged by id.
+#
+# `route` is a URL for most logos and `{light, dark}` for the ones drawn in
+# both — 161 of 669 on 2026-09-15 — which is what `||` alternatives are for.
+# Verified live that day: /categories 200, /category/software 200 with 286 rows,
+# a library SVG 200 image/svg+xml.
+
+id = "svgl"
+label = "svgl logos"
+category = "icons"
+kind = "icon"
+family = "vector"
+
+[request]
+url = "https://api.svgl.app/category/{page_value}"
+limit = 100
+format = "json"
+root = ""
+page_values = ["software", "library", "ai", "design", "adobe", "framework", "language", "entertainment", "social", "microsoft", "devtool", "platform", "database", "google", "crypto", "hosting", "education", "cms", "browser", "community", "marketplace", "authentication", "compiler", "analytics", "payment", "nuxt", "music", "vercel", "communications", "voidzero", "automation", "hardware", "privacy", "monorepo", "cybersecurity", "config", "iot", "secrets", "iac", "sync%20engine", "themes"]
+
+[capabilities]
+# Its `?search=` cannot be combined with a category, and paging needs the
+# category — browse only.
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "route || route.light || route.dark"
+title = "title"
+page_url = "url"
+tags = "category"

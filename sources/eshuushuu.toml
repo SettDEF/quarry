@@ -1,0 +1,33 @@
+# e-shuushuu — a million and a half curated anime images, hand-tagged since 2006.
+#
+# The API gives a filename and an extension rather than a URL, so both the
+# image and its thumbnail are built from them — the template support that the
+# museum APIs needed, earning itself a second time.
+
+id = "eshuushuu"
+label = "e-shuushuu"
+category = "art"
+
+[request]
+url = "https://e-shuushuu.net/api/v1/images?per_page={limit}&page={page}&tags={query}&tags_mode=all"
+# Tags are ids here: typed words are looked up with /api/v1/tags first.
+tag_resolver = "eshuushuu"
+limit = 40
+format = "json"
+root = "images"
+
+[capabilities]
+text = true
+tags = true
+nsfw = false
+sort = false
+
+[map]
+id = "image_id"
+url = "https://e-shuushuu.net/images/{filename}.{ext}"
+thumb = "https://e-shuushuu.net/thumbs/{filename}.{ext}"
+title = "caption"
+width = "width"
+height = "height"
+bytes = "filesize"
+page_url = "https://e-shuushuu.net/image/{image_id}"

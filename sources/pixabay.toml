@@ -1,0 +1,52 @@
+# Pixabay — about 5 million free-to-use photos and illustrations. Needs a free
+# API key.
+#
+# Without one, every request answers 400 "[ERROR 400] Invalid or missing API
+# key" (verified live 2026-09-15), so this manifest carries an `[auth]` block
+# like gelbooru.toml: with $PIXABAY_API_KEY unset it does not load, and quarryd
+# says why and where to get the key instead of listing a source that is always
+# empty. The row mapping follows Pixabay's documented `hits` shape; it has not
+# been checked against a keyed response from this machine.
+#
+# An empty `q` is the whole library, ordered by popularity, which is the feed.
+#
+# Two honest caveats. `largeImageURL` is capped at 1280px for a standard key —
+# the true original needs "full API access" — while `imageWidth`/`imageHeight`
+# describe the original, so the aspect is exact and the pixel size is what the
+# original has, not what the URL serves. And the API returns at most 500 hits
+# for any one query, so this feed ends there.
+
+id = "pixabay"
+label = "Pixabay"
+category = "photography"
+
+[request]
+url = "https://pixabay.com/api/?q={query}&page={page}&per_page={limit}&image_type=all"
+limit = 50
+format = "json"
+root = "hits"
+
+[auth]
+vars = ["PIXABAY_API_KEY"]
+query = "&key={PIXABAY_API_KEY}"
+hint = "https://pixabay.com/api/docs/ — the key is shown there once you are logged in"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "largeImageURL"
+thumb = "webformatURL"
+sample = "webformatURL"
+page_url = "pageURL"
+author = "user"
+width = "imageWidth"
+height = "imageHeight"
+bytes = "imageSize"
+tags = "tags"
+tags_separator = ", "
+license = "=Pixabay Content License"

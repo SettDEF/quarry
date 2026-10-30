@@ -1,0 +1,41 @@
+[Desktop Entry]
+Type=Application
+Name=Quarry
+GenericName=Picture Query
+Comment=Find, fit and apply pictures for every image slot on your desktop
+Exec=quarry
+Icon=quarry
+Terminal=false
+Categories=Graphics;Viewer;Qt;
+Keywords=wallpaper;avatar;pfp;banner;icon;gallery;images;emote;3d;
+StartupNotify=true
+StartupWMClass=quarry
+# Launcher actions: the app opened straight onto one kind of thing, the way
+# Steam's entry offers Store and Library. Each is one IPC call to a running
+# instance, or a cold start with the query already applied.
+Actions=Wallpapers;Avatars;Icons;Banners;Random;
+
+[Desktop Action Wallpapers]
+Name=Wallpapers
+Icon=preferences-desktop-wallpaper
+Exec=quarry --kind wallpaper
+
+[Desktop Action Avatars]
+Name=Avatars
+Icon=avatar-default
+Exec=quarry --kind avatar
+
+[Desktop Action Icons]
+Name=Icons
+Icon=applications-graphics
+Exec=quarry --query "family:vector tintable"
+
+[Desktop Action Banners]
+Name=Banners
+Icon=image-x-generic
+Exec=quarry --kind banner
+
+[Desktop Action Random]
+Name=Surprise me
+Icon=media-playlist-shuffle
+Exec=quarry --query "sort:random"

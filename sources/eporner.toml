@@ -1,0 +1,202 @@
+# EPORNER — keyless JSON, 20,000 pages. Verified live 2026-09-17: empty query
+# browses newest, page 2 disjoint from page 1, keywords comma-listed.
+# No file URL is published, so a row is the 640x360 poster and `page_url` is
+# where it plays. `family` is left alone because the row really is a JPEG.
+id = "eporner"
+label = "EPORNER"
+category = "adult"
+adult = true
+# A video, even though what the API hands over is its poster. Poster frames only: the viewer resolves the page when you open one.
+family = "video"
+
+[request]
+url = "https://www.eporner.com/api/v2/video/search/?query={query}&per_page={limit}&page={page}&thumbsize=big&order={sort}&format=json&lq=1"
+limit = 50
+format = "json"
+root = "videos"
+
+[request.sort]
+default = "most-popular"
+new = "latest"
+large = "most-viewed"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = true
+
+[map]
+id = "id"
+url = "default_thumb.src"
+width = "default_thumb.width"
+height = "default_thumb.height"
+title = "title"
+tags = "keywords"
+tags_separator = ", "
+page_url = "url"
+
+# THE SITE'S OWN TABLE OF CONTENTS, as things you can pick.
+# Categories run the site's own search for that word — pornhub's
+# `category=` parameter rejects ids from its own categories endpoint
+# (probed 2026-09-17: "Category does not exist!" for every valid id),
+# so the name goes through the search, which does work.
+
+[[sections]]
+group = "Sort"
+label = "Featured"
+q = "sort:relevance"
+
+[[sections]]
+group = "Sort"
+label = "Newest"
+q = "sort:new"
+
+[[sections]]
+group = "Sort"
+label = "Most viewed"
+q = "sort:large"
+
+[[sections]]
+group = "Categories"
+label = "amateur"
+
+[[sections]]
+group = "Categories"
+label = "anal"
+
+[[sections]]
+group = "Categories"
+label = "arab"
+
+[[sections]]
+group = "Categories"
+label = "asian"
+
+[[sections]]
+group = "Categories"
+label = "babe"
+
+[[sections]]
+group = "Categories"
+label = "bbw"
+
+[[sections]]
+group = "Categories"
+label = "black"
+
+[[sections]]
+group = "Categories"
+label = "blonde"
+
+[[sections]]
+group = "Categories"
+label = "blowjob"
+
+[[sections]]
+group = "Categories"
+label = "bondage"
+
+[[sections]]
+group = "Categories"
+label = "brazilian"
+
+[[sections]]
+group = "Categories"
+label = "british"
+
+[[sections]]
+group = "Categories"
+label = "brunette"
+
+[[sections]]
+group = "Categories"
+label = "bukkake"
+
+[[sections]]
+group = "Categories"
+label = "cartoon"
+
+[[sections]]
+group = "Categories"
+label = "casting"
+
+[[sections]]
+group = "Categories"
+label = "celebrity"
+
+[[sections]]
+group = "Categories"
+label = "compilation"
+
+[[sections]]
+group = "Categories"
+label = "cosplay"
+
+[[sections]]
+group = "Categories"
+label = "creampie"
+
+[[sections]]
+group = "Categories"
+label = "cuckold"
+
+[[sections]]
+group = "Categories"
+label = "cumshot"
+
+[[sections]]
+group = "Categories"
+label = "czech"
+
+[[sections]]
+group = "Categories"
+label = "deepthroat"
+
+[[sections]]
+group = "Categories"
+label = "ebony"
+
+[[sections]]
+group = "Categories"
+label = "euro"
+
+[[sections]]
+group = "Categories"
+label = "feet"
+
+[[sections]]
+group = "Categories"
+label = "fetish"
+
+[[sections]]
+group = "Categories"
+label = "ffm"
+
+[[sections]]
+group = "Categories"
+label = "fingering"
+
+[[sections]]
+group = "Categories"
+label = "fisting"
+
+[[sections]]
+group = "Categories"
+label = "fmm"
+
+[[sections]]
+group = "Categories"
+label = "french"
+
+[[sections]]
+group = "Categories"
+label = "funny"
+
+[[sections]]
+group = "Categories"
+label = "gaming"
+
+[[sections]]
+group = "Categories"
+label = "gangbang"

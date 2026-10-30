@@ -1,0 +1,69 @@
+# xHamster — read from its search listing, which is server-rendered.
+#
+# No public API (the "xhamster api" endpoints all want a partner key), but the
+# listing ships every row complete: `div.video-thumb` with the id on the card,
+# the page on the anchor and the poster on the img. Verified live 2026-09-19:
+# 47 rows for `milf`, page 2 disjoint from page 1.
+id = "xhamster"
+label = "xHamster"
+category = "adult"
+adult = true
+# The row is a poster frame; the viewer resolves the page when you open one.
+family = "video"
+# Its posters are on xhcdn, which refuses hotlinks on some edges.
+referer = "https://xhamster.com/"
+referer_hosts = ["xhcdn.com"]
+
+[request]
+url = "https://xhamster.com/search/{query}?page={page}"
+format = "html"
+limit = 47
+space = "-"
+# Its search wants a term, and this is the broadest one its front page pushes.
+browse_term = "new"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[html]
+row = "div.video-thumb"
+base = "https://xhamster.com"
+
+[html.fields]
+id = { attr = "data-video-id" }
+page = { sel = "a[data-role=thumb-link]", attr = "href" }
+thumb = { sel = "img", attr = "src" }
+title = { sel = "img", attr = "alt" }
+
+[map]
+id = "id"
+url = "thumb"
+thumb = "thumb"
+title = "title"
+page_url = "page"
+
+[page_tags]
+# The page's own state: `"tags":[{"name":…,"isTag":…}]`, creators and
+# categories included — the creator is worth having as a tag too.
+json_array = "tags"
+field = "name"
+
+[[sections]]
+group = "Sort"
+label = "Newest"
+q = "sort:new"
+
+[[sections]]
+group = "Popular"
+label = "milf"
+
+[[sections]]
+group = "Popular"
+label = "amateur"
+
+[[sections]]
+group = "Popular"
+label = "anal"

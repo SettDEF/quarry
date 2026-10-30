@@ -1,0 +1,22 @@
+{
+  "id": "morse",
+  "name": "Morse",
+  "version": "0.1",
+  "author": "quarry",
+  "icon": "chat",
+  "iconImage": "icon.svg",
+  "description": "Your Telegram, read through quarry. Chats in the rail, conversations to read, and every picture and clip in a chat as a wall you can open, keep, export and set as wallpaper. Read-only: it never sends, joins, reacts or marks anything read.",
+  "entry": "Main.qml",
+  "sources": [],
+  "rail": true,
+  "defaultSkin": "quarry",
+  "skins": [
+    {
+      "id": "quarry",
+      "name": "Quarry",
+      "description": "The app's own surfaces \u2014 the same cards, colours and menus as the rest of quarry.",
+      "entry": "skins/Quarry.qml"
+    }
+  ],
+  "enabledByDefault": false
+}

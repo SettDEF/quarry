@@ -1,0 +1,50 @@
+# Tantabus — a Philomena board for AI-generated pony art, 40k images.
+#
+# Tagged `art`, not `adult`: anonymously it serves its default filter, which
+# hides explicit posts (`explicit` counted 0 against 39,990 for `*` on
+# 2026-09-15). What the default filter does let through — suggestive,
+# questionable — is marked row by row from the rating tag, and `-nsfw` is
+# pushed down as `safe`.
+#
+# Verified live 2026-09-15: 200 for `*`, 20 rows a page, page 2 disjoint;
+# `wallpaper,safe` 423 results where `wallpaper safe` (a space) answered 0.
+
+id = "tantabus"
+label = "Tantabus"
+category = "art"
+
+[request]
+url = "https://tantabus.ai/api/v1/json/search/images?q={query}&per_page={limit}&page={page}"
+tag_resolver = "philomena"
+# Its creator is a tag, the way the board files it.
+author_tag = "artist:{author}"
+limit = 50
+format = "json"
+root = "images"
+browse_term = "*"
+joiner = ","
+video_tag = "mime_type:video/webm"
+sfw_tag = "safe"
+nsfw_tag = "-safe"
+
+[capabilities]
+author = true
+text = true
+tags = true
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "representations.full"
+thumb = "representations.thumb"
+sample = "representations.medium"
+title = "description"
+width = "width"
+height = "height"
+bytes = "size"
+tags = "tags"
+page_url = "https://tantabus.ai/images/{id}"
+# Philomena's rating is one of the tags.
+rating = "tags"
+nsfw_ratings = ["suggestive", "questionable", "explicit", "grimdark", "semi-grimdark", "grotesque"]

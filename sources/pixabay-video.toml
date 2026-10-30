@@ -1,0 +1,44 @@
+# Pixabay videos — free stock footage from the same library, same free key.
+#
+# A separate manifest because it is a separate endpoint (`/api/videos/`) with a
+# separate row shape, and one manifest cannot be two URLs. Unkeyed it answers
+# the same 400 as the pictures do (verified live 2026-09-15), so it hides behind
+# the same `[auth]` variable: set $PIXABAY_API_KEY once and both appear. The
+# mapping follows the documented `hits[].videos` shape, not a keyed capture.
+#
+# `large` is empty for clips that were never uploaded at 4K, hence the
+# alternatives: the largest rendition that exists, and its size alongside it.
+
+id = "pixabay-video"
+label = "Pixabay Videos"
+category = "video"
+family = "video"
+
+[request]
+url = "https://pixabay.com/api/videos/?q={query}&page={page}&per_page={limit}"
+limit = 50
+format = "json"
+root = "hits"
+
+[auth]
+vars = ["PIXABAY_API_KEY"]
+query = "&key={PIXABAY_API_KEY}"
+hint = "https://pixabay.com/api/docs/ — the key is shown there once you are logged in"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "videos.large.url || videos.medium.url"
+thumb = "videos.medium.thumbnail || videos.small.thumbnail"
+page_url = "pageURL"
+author = "user"
+width = "videos.large.width || videos.medium.width"
+height = "videos.large.height || videos.medium.height"
+tags = "tags"
+tags_separator = ", "
+license = "=Pixabay Content License"

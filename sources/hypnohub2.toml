@@ -1,0 +1,28 @@
+# HypnoHub — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "hypnohub2"
+label = "HypnoHub"
+category = "adult"
+adult = true
+
+[request]
+url = "https://hypnohub.net/index.php?page=dapi&s=post&q=index&json=1&limit={limit}&pid={page0}"
+limit = 40
+format = "json"
+
+[capabilities]
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "file_url"
+thumb = "preview_url"
+width = "width"
+height = "height"
+tags = "tags"
+# No page of its own in this API — the file is the thing.
+page_url = "file_url"

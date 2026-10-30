@@ -1,0 +1,27 @@
+# Yu-Gi-Oh! — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "ygoprodeck"
+label = "Yu-Gi-Oh!"
+category = "games"
+
+[request]
+url = "https://db.ygoprodeck.com/api/v7/cardinfo.php?num={limit}&offset={offset}"
+limit = 40
+format = "json"
+root = "data"
+
+[capabilities]
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "card_images[0].image_url"
+thumb = "card_images[0].image_url_small"
+title = "name"
+tags = "race"
+# No page of its own in this API — the file is the thing.
+page_url = "card_images[0].image_url"

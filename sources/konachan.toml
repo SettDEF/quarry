@@ -1,0 +1,54 @@
+# Konachan — the same Moebooru API yande.re serves, so the same mapping.
+#
+# Added because the desktop shell already browses it and quarryd did not: a
+# source the shell has and the daemon lacks is a source that cannot be cached,
+# deduplicated or hashed, and is the reason the shell still owns HTTP of its own.
+id = "konachan"
+label = "Konachan"
+category = "art"
+
+[request]
+url = "https://konachan.com/post.json?limit={limit}&page={page}&tags={tags}"
+# "by this person", in this board's own vocabulary.
+#
+# A plain tag, NOT `artist:{author}` — measured on Danbooru 2026-09-23:
+# `tags=wlop` answers 5 rows and `tags=artist:wlop` answers 0. The philomena
+# boards (derpibooru and friends) are the ones that want the namespace, and
+# they already declare it.
+author_tag = "{author}"
+tag_resolver = "moebooru"
+limit = 40
+format = "json"
+root = ""
+# Moebooru's rating metatag — `rating:s` answered 40 of 40 safe and `-rating:s`
+# 40 of 40 not (verified 2026-09-15). Naming both makes `-nsfw` a query rather
+# than a page of rows discarded locally.
+sfw_tag = "rating:s"
+nsfw_tag = "-rating:s"
+
+[capabilities]
+text = true
+tags = true
+# Left false here: `sfw_tag`/`nsfw_tag` above are what turn the capability on,
+# and the rows are marked from `rating` below either way.
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "file_url"
+thumb = "preview_url"
+# Moebooru always answers this: below its sample threshold it just echoes
+# file_url, above it it's a genuine ~1200-1500px render — verified live,
+# 2026-08-30 (post 407869: 3000x1694 original -> 1500x847 sample).
+sample = "sample_url"
+width = "width"
+height = "height"
+tags = "tags"
+tags_separator = " "
+# The post's own page, not the listing: without this every row's "open source
+# page" went to the same place.
+page_url = "https://konachan.com/post/show/{id}"
+# Moebooru ratings: s(afe), q(uestionable), e(xplicit).
+rating = "rating"
+nsfw_ratings = ["q", "e"]

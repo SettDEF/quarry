@@ -1,0 +1,27 @@
+# iNaturalist observations — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "inaturalist_obs"
+label = "iNaturalist observations"
+category = "photography"
+
+[request]
+url = "https://api.inaturalist.org/v1/observations?photos=true&per_page={limit}&page={page}&q={query}"
+limit = 40
+format = "json"
+root = "results"
+browse_term = "fox"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "{photos[0].url|replace:square:large}"
+title = "species_guess"
+author = "user.login"
+# No page of its own in this API — the file is the thing.
+page_url = "{photos[0].url|replace:square:large}"

@@ -1,0 +1,24 @@
+# TVmaze — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "tvmaze"
+label = "TVmaze"
+category = "art"
+
+[request]
+url = "https://api.tvmaze.com/shows?page={page0}"
+limit = 40
+format = "json"
+
+[capabilities]
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "image.original"
+thumb = "image.medium"
+title = "name"
+page_url = "url"

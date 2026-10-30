@@ -1,0 +1,42 @@
+# booru.gikopoi.com — Shimmie board, read from its listing HTML.
+# Verified live 2026-09-17: 22 rows a page, page 2 shares no id with page 1.
+# `data-rating` exists but was "?" on 21 of 22 rows, so the board's own rating
+# cannot be trusted to mark anything — hence `adult = true`.
+
+id = "gikopoi"
+label = "gikopoi booru"
+category = "adult"
+adult = true
+
+[request]
+url = "https://booru.gikopoi.com/post/list/{query}/{page}"
+format = "html"
+limit = 22
+space = "%20"
+
+[capabilities]
+text = true
+tags = true
+
+[html]
+row = ".shm-thumb"
+
+[html.fields]
+id = { attr = "data-post-id" }
+tags = { attr = "data-tags" }
+mime = { attr = "data-mime" }
+width = { attr = "data-width" }
+height = { attr = "data-height" }
+thumb = { sel = "img", attr = "src" }
+hash = { sel = "img", attr = "src", re = "/_thumbs/([^/]+)/" }
+
+[map]
+id = "id"
+url = "https://booru.gikopoi.com/_images/{hash}/{id}.{mime|replace:image/:|replace:video/:}"
+thumb = "thumb"
+ext = "mime"
+width = "width"
+height = "height"
+tags = "tags"
+tags_separator = " "
+page_url = "https://booru.gikopoi.com/post/view/{id}"

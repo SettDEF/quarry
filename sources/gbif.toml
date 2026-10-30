@@ -1,0 +1,26 @@
+# GBIF species media — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "gbif"
+label = "GBIF species media"
+category = "photography"
+
+[request]
+url = "https://api.gbif.org/v1/occurrence/search?mediaType=StillImage&limit={limit}&offset={offset}&q={query}"
+limit = 40
+format = "json"
+root = "results"
+browse_term = "bird"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "key"
+url = "media[0].identifier"
+title = "scientificName"
+# No page of its own in this API — the file is the thing.
+page_url = "media[0].identifier"

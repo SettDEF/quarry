@@ -1,0 +1,44 @@
+# The Art Institute of Chicago — 130k+ works, keyless, with a IIIF image server.
+#
+# The API returns an image *id* and expects the client to build the URL, which
+# is why the manifest format grew templates: `full/1686,/0/default.jpg` asks the
+# IIIF server for a 1686px-wide render of exactly the work it names, and the
+# same two lines would serve Harvard or the Bodleian.
+#
+# `thumbnail` carries the ORIGINAL's dimensions, not the thumbnail's — so the
+# size shown is the size of the work, which is what a search is filtering on.
+# Works without a picture are asked to stay out at query time rather than being
+# dropped later; `has_images` is not a filter this endpoint takes, so the
+# `image_id` template returning empty is what retires them.
+
+id = "artic"
+label = "Art Institute of Chicago"
+category = "photography"
+
+# The IIIF server returns 403 for every image without this — see the `referer`
+# note in declarative.rs. The API host does not care; the image host does.
+referer = "https://www.artic.edu/"
+
+[request]
+url = "https://api.artic.edu/api/v1/artworks/search?q={query}&limit={limit}&from={offset}&fields=id,title,image_id,thumbnail,artist_title,date_display"
+limit = 40
+format = "json"
+root = "data"
+browse_term = "landscape"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "https://www.artic.edu/iiif/2/{image_id}/full/1686,/0/default.jpg"
+thumb = "https://www.artic.edu/iiif/2/{image_id}/full/400,/0/default.jpg"
+sample = "https://www.artic.edu/iiif/2/{image_id}/full/843,/0/default.jpg"
+title = "title"
+author = "artist_title"
+page_url = "https://www.artic.edu/artworks/{id}"
+width = "thumbnail.width"
+height = "thumbnail.height"

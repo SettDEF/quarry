@@ -1,0 +1,25 @@
+# Pokémon sprites — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "pokeapi"
+label = "Pokémon sprites"
+category = "art"
+
+[request]
+url = "https://pokeapi.co/api/v2/pokemon?limit={limit}&offset={offset}"
+limit = 40
+format = "json"
+root = "results"
+
+[capabilities]
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "name"
+url = "https://img.pokemondb.net/artwork/large/{name}.jpg"
+title = "name"
+# No page of its own in this API — the file is the thing.
+page_url = "https://img.pokemondb.net/artwork/large/{name}.jpg"

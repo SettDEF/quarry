@@ -1,0 +1,28 @@
+# Safebooru (Danbooru) — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "safebooru_donmai"
+label = "Safebooru (Danbooru)"
+category = "art"
+
+[request]
+url = "https://safebooru.donmai.us/posts.json?limit={limit}&page={page}"
+limit = 40
+format = "json"
+
+[capabilities]
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "file_url"
+thumb = "preview_file_url"
+width = "image_width"
+height = "image_height"
+tags = "tag_string"
+author = "tag_string_artist"
+# No page of its own in this API — the file is the thing.
+page_url = "file_url"

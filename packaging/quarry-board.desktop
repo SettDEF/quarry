@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=quarry board
+GenericName=Reference board
+Comment=Arrange reference pictures on an infinite canvas
+Exec=quarry-board
+Icon=quarry-board
+Terminal=false
+Categories=Graphics;2DGraphics;Viewer;
+Keywords=reference;board;moodboard;art;pureref;
+StartupWMClass=quarry-board

@@ -1,0 +1,46 @@
+# e926 — the same board as e621 with the adult half removed, by its operators
+# rather than by us.
+#
+# Worth shipping separately rather than as a filter: it is a large, well-tagged
+# art catalogue that is safe by construction, and it carries video on the same
+# `type:webm` metatag. A `rating:s` query against e621 would be quarry deciding
+# what is safe; this is the site deciding.
+
+id = "e926"
+label = "e926"
+category = "art"
+
+[request]
+url = "https://e926.net/posts.json?limit={limit}&page={page}&tags={tags}"
+# "by this person", in this board's own vocabulary.
+#
+# A plain tag, NOT `artist:{author}` — measured on Danbooru 2026-09-23:
+# `tags=wlop` answers 5 rows and `tags=artist:wlop` answers 0. The philomena
+# boards (derpibooru and friends) are the ones that want the namespace, and
+# they already declare it.
+author_tag = "{author}"
+tag_resolver = "e621"
+limit = 40
+format = "json"
+root = "posts"
+video_tag = "type:webm"
+
+[capabilities]
+text = true
+tags = true
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "file.url"
+thumb = "preview.url"
+sample = "sample.url"
+width = "file.width"
+height = "file.height"
+bytes = "file.size"
+duration = "duration"
+tags = "tags.general"
+# The post's own page, not the listing: without this every row's "open source
+# page" went to the same place.
+page_url = "https://e926.net/posts/{id}"

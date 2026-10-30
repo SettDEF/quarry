@@ -1,0 +1,28 @@
+# Deck of cards — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "deckofcards"
+label = "Deck of cards"
+category = "art"
+
+[request]
+url = "https://deckofcardsapi.com/api/deck/new/draw/?count=52#page={page_value}"
+limit = 40
+format = "json"
+# Everything in one answer: one page, and the token that says so
+# rides in the fragment, which is never sent to the server.
+page_values = ["1"]
+root = "cards"
+
+[capabilities]
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "code"
+url = "image"
+title = "value"
+# No page of its own in this API — the file is the thing.
+page_url = "image"

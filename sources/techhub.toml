@@ -1,0 +1,29 @@
+# TechHub — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "techhub"
+label = "TechHub"
+category = "photography"
+
+[request]
+url = "https://techhub.social/api/v1/timelines/public?only_media=true&limit={limit}#page={page_value}"
+limit = 40
+format = "json"
+# Everything in one answer: one page, and the token that says so
+# rides in the fragment, which is never sent to the server.
+page_values = ["1"]
+
+[capabilities]
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "media_attachments[0].url"
+thumb = "media_attachments[0].preview_url"
+width = "media_attachments[0].meta.original.width"
+height = "media_attachments[0].meta.original.height"
+author = "account.username"
+page_url = "url"

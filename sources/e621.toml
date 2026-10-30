@@ -1,0 +1,59 @@
+# e621 — adult art, and the most reliable keyless source of VIDEO there is.
+#
+# Included for the video as much as the pictures: `type:webm` returns real
+# 1080p WebM files with a poster image already rendered, which is exactly the
+# shape quarry's video path wants — a thumbnail that costs nothing and a file
+# that plays. Verified live 2026-08-31: post 6668920, 1920x1080 VP9, 15.8s.
+#
+# `adult = true` marks every row NSFW. That is not a judgement about the
+# source, it is what makes `-nsfw` work: without it these rows would sit
+# unmarked in a catalogue next to the wallpapers, and the filter that exists to
+# keep the rest browsable would silently keep every one of them.
+
+id = "e621"
+label = "e621"
+category = "adult"
+adult = true
+
+[request]
+url = "https://e621.net/posts.json?limit={limit}&page={page}&tags={tags}"
+# "by this person", in this board's own vocabulary.
+#
+# A plain tag, NOT `artist:{author}` — measured on Danbooru 2026-09-23:
+# `tags=wlop` answers 5 rows and `tags=artist:wlop` answers 0. The philomena
+# boards (derpibooru and friends) are the ones that want the namespace, and
+# they already declare it.
+author_tag = "{author}"
+tag_resolver = "e621"
+limit = 40
+format = "json"
+root = "posts"
+# What "only video" is called here. Its `type:` metatag takes a file extension,
+# and webm is what the board actually stores video as.
+video_tag = "type:webm"
+
+[capabilities]
+text = true
+tags = true
+# Its `rating:` metatag is real, but this source is adult throughout — there is
+# no safe half to filter down to.
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "file.url"
+# A rendered poster for video, a real thumbnail for stills — one field, both
+# jobs, because the board renders one for every post regardless of type.
+thumb = "preview.url"
+sample = "sample.url"
+width = "file.width"
+height = "file.height"
+bytes = "file.size"
+# Published rather than measured, unusually: most boards do not carry this at
+# all, and the daemon has to open the file to find out.
+duration = "duration"
+tags = "tags.general"
+# The post's own page, not the listing: without this every row's "open source
+# page" went to the same place.
+page_url = "https://e621.net/posts/{id}"

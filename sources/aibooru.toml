@@ -1,0 +1,52 @@
+# AIBooru — generated art, on the Danbooru engine.
+#
+# Kept apart from the drawn boorus on purpose rather than blended into them:
+# "is this generated" is a thing people sort by in both directions, and a source
+# you can switch off in Settings is the only honest way to offer that.
+
+id = "aibooru"
+label = "AIBooru"
+category = "art"
+
+[request]
+url = "https://aibooru.online/posts.json?limit={limit}&page={page}&tags={tags}"
+# "by this person", in this board's own vocabulary.
+#
+# A plain tag, NOT `artist:{author}` — measured on Danbooru 2026-09-23:
+# `tags=wlop` answers 5 rows and `tags=artist:wlop` answers 0. The philomena
+# boards (derpibooru and friends) are the ones that want the namespace, and
+# they already declare it.
+author_tag = "{author}"
+tag_resolver = "danbooru"
+limit = 40
+format = "json"
+root = ""
+# No browse term: an empty tag list is the newest posts, which is what a home
+# feed should page through. `landscape` was a topic, not a feed.
+# Danbooru's rating metatag, and it does not count against the anonymous
+# two-tag limit — `scenery sky -rating:g` answered 20 rows, none rated g
+# (verified 2026-09-15).
+sfw_tag = "rating:g"
+nsfw_tag = "-rating:g"
+
+[capabilities]
+text = true
+tags = true
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "file_url"
+thumb = "preview_file_url"
+sample = "large_file_url"
+width = "image_width"
+height = "image_height"
+tags = "tag_string"
+tags_separator = " "
+bytes = "file_size"
+page_url = "https://aibooru.online/posts/{id}"
+# Danbooru ratings: g(eneral), s(ensitive), q(uestionable), e(xplicit). Only
+# general is safe — the same line the native danbooru adapter draws.
+rating = "rating"
+nsfw_ratings = ["s", "q", "e"]

@@ -1,0 +1,24 @@
+# Rick and Morty — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "rickandmorty"
+label = "Rick and Morty"
+category = "art"
+
+[request]
+url = "https://rickandmortyapi.com/api/character?page={page}"
+limit = 40
+format = "json"
+root = "results"
+
+[capabilities]
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "image"
+title = "name"
+page_url = "url"

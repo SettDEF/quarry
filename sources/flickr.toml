@@ -1,0 +1,48 @@
+# Flickr — billions of photographs, searched by interestingness. Needs a free
+# API key.
+#
+# An unkeyed call answers 200 with `{"stat":"fail","code":100,"message":"Invalid
+# API Key"}` (verified live 2026-09-15) — a 200 that is not a success, exactly
+# the trap `[auth]` is for: with $FLICKR_API_KEY unset this manifest does not
+# load at all. The mapping follows the documented `flickr.photos.search` shape
+# with `extras`, not a keyed capture.
+#
+# `url_o` (the original) is only published where the owner allows downloads;
+# `url_l` (1024px) is the fallback, and each alternative's size comes with it.
+# Search refuses to run without some term ("parameterless searches have been
+# disabled"), hence the browse term. Flickr stops at 4,000 results per query.
+
+id = "flickr"
+label = "Flickr"
+category = "photography"
+
+[request]
+url = "https://api.flickr.com/services/rest/?method=flickr.photos.search&text={query}&page={page}&per_page={limit}&sort=interestingness-desc&media=photos&extras=url_o,url_l,url_q,owner_name,tags,license&format=json&nojsoncallback=1"
+limit = 100
+format = "json"
+root = "photos.photo"
+browse_term = "landscape"
+
+[auth]
+vars = ["FLICKR_API_KEY"]
+query = "&api_key={FLICKR_API_KEY}"
+hint = "https://www.flickr.com/services/apps/create/apply/ — a non-commercial key is free"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "url_o || url_l"
+thumb = "url_q"
+sample = "url_l"
+title = "title"
+author = "ownername"
+page_url = "https://www.flickr.com/photos/{owner}/{id}"
+width = "width_o || width_l"
+height = "height_o || height_l"
+tags = "tags"
+tags_separator = " "

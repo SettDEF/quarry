@@ -1,0 +1,47 @@
+# Furbooru — the same Philomena engine, 272k images, 2,011 of them webm.
+#
+# Shipped alongside Derpibooru rather than folded into it: they are different
+# catalogues with different tags, and one manifest cannot be two sites. The
+# shape being identical is the point — a manifest costs nothing once the engine
+# is understood.
+
+id = "furbooru"
+label = "Furbooru"
+category = "adult"
+adult = true
+
+[request]
+url = "https://furbooru.org/api/v1/json/search/images?q={query}&per_page={limit}&page={page}"
+tag_resolver = "philomena"
+# Its creator is a tag, the way the board files it.
+author_tag = "artist:{author}"
+limit = 50
+format = "json"
+root = "images"
+# `*` is Philomena for "everything", newest first — a feed that pages forever.
+# An empty `q` answers zero rows, and `wallpaper` was a topic, not a feed.
+browse_term = "*"
+# Tags here may contain spaces, so terms are joined with a comma.
+joiner = ","
+video_tag = "mime_type:video/webm"
+
+[capabilities]
+author = true
+text = true
+tags = true
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "representations.full"
+thumb = "representations.thumb"
+sample = "representations.medium"
+title = "description"
+width = "width"
+height = "height"
+bytes = "size"
+tags = "tags"
+# The post's own page, not the listing: without this every row's "open source
+# page" went to the same place.
+page_url = "https://furbooru.org/images/{id}"

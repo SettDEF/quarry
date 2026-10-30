@@ -1,0 +1,38 @@
+# lyrabooru.org — Shimmie board, read from its listing HTML.
+# Verified live 2026-09-17: 30 rows a page, page 2 shares no id with page 1.
+# This theme states a bare extension in `data-fileext` rather than a MIME type,
+# and publishes no dimensions. No per-row rating, so `adult = true`.
+
+id = "lyrabooru"
+label = "Lyrabooru"
+category = "adult"
+adult = true
+
+[request]
+url = "https://lyrabooru.org/post/list/{query}/{page}"
+format = "html"
+limit = 30
+space = "%20"
+
+[capabilities]
+text = true
+tags = true
+
+[html]
+row = ".shm-thumb"
+
+[html.fields]
+id = { attr = "data-post-id" }
+tags = { attr = "data-tags" }
+ext = { attr = "data-fileext" }
+thumb = { sel = "img", attr = "src" }
+hash = { sel = "img", attr = "src", re = "/_thumbs/([^/]+)/" }
+
+[map]
+id = "id"
+url = "https://lyrabooru.org/_images/{hash}/{id}.{ext}"
+thumb = "thumb"
+ext = "ext"
+tags = "tags"
+tags_separator = " "
+page_url = "https://lyrabooru.org/post/view/{id}"

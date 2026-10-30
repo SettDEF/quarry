@@ -1,0 +1,10 @@
+{
+  "id": "steam-profile",
+  "name": "Steam profile mockup",
+  "version": "1.0",
+  "author": "quarry",
+  "description": "Draws the candidate into a Steam profile header at the 184px Steam actually shows — the one place an avatar is seen at full size. Adds a pane to the in-context layout.",
+  "entry": "Main.qml",
+  "providesMocks": true,
+  "enabledByDefault": true
+}

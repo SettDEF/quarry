@@ -1,0 +1,43 @@
+# Harvard Art Museums — 250,000 objects, most with IIIF images. Needs a free API
+# key.
+#
+# Unkeyed it answers 401 `Unauthorized` (verified live 2026-09-15), so this
+# loads only with $HARVARD_API_KEY set. The mapping follows the documented
+# `object` record shape, not a keyed capture.
+#
+# `primaryimageurl` is empty for works still in copyright, which retires those
+# rows by itself — no filter needed. An empty `q` with `hasimage=1` is the
+# whole imaged collection.
+
+id = "harvard"
+label = "Harvard Art Museums"
+category = "photography"
+
+[request]
+url = "https://api.harvardartmuseums.org/object?q={query}&page={page}&size={limit}&hasimage=1&fields=id,title,url,primaryimageurl,images,people,copyright"
+limit = 50
+format = "json"
+root = "records"
+
+[auth]
+vars = ["HARVARD_API_KEY"]
+query = "&apikey={HARVARD_API_KEY}"
+hint = "https://harvardartmuseums.org/collections/api — request a key with the form there"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "primaryimageurl"
+thumb = "{images[0].iiifbaseuri}/full/!400,400/0/default.jpg"
+sample = "{images[0].iiifbaseuri}/full/!1280,1280/0/default.jpg"
+title = "title"
+author = "people[0].name"
+license = "copyright"
+page_url = "url"
+width = "images[0].width"
+height = "images[0].height"

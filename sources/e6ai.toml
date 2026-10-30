@@ -1,0 +1,47 @@
+# e6ai — the e621 engine, for AI-generated work only. Adult throughout in the
+# same way e621 is, and kept apart from it for the same reason AIBooru is kept
+# apart from the drawn boorus: "is this generated" is something people filter
+# on in both directions.
+#
+# Verified live 2026-09-15: 200 with an empty tag list (newest first), 20 rows a
+# page, page 2 disjoint; `rating:s` and `-rating:s` both honoured.
+
+id = "e6ai"
+label = "e6ai"
+category = "adult"
+adult = true
+
+[request]
+url = "https://e6ai.net/posts.json?limit={limit}&page={page}&tags={tags}"
+# "by this person", in this board's own vocabulary.
+#
+# A plain tag, NOT `artist:{author}` — measured on Danbooru 2026-09-23:
+# `tags=wlop` answers 5 rows and `tags=artist:wlop` answers 0. The philomena
+# boards (derpibooru and friends) are the ones that want the namespace, and
+# they already declare it.
+author_tag = "{author}"
+tag_resolver = "e621"
+limit = 40
+format = "json"
+root = "posts"
+video_tag = "type:webm"
+
+[capabilities]
+text = true
+tags = true
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "file.url"
+thumb = "preview.url"
+sample = "sample.url"
+width = "file.width"
+height = "file.height"
+bytes = "file.size"
+duration = "duration"
+tags = "tags.general"
+page_url = "https://e6ai.net/posts/{id}"
+rating = "rating"
+nsfw_ratings = ["q", "e"]

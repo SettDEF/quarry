@@ -1,0 +1,52 @@
+# NASA Image and Video Library — 230,000 public-domain pictures from every NASA
+# centre, keyless. Launches, nebulae, the ISS, Earth from orbit: a great deal of
+# it is wallpaper-shaped.
+#
+# Verified live 2026-09-15: 200 with no query as long as `media_type` is set
+# (without it the API answers 400), 20 rows a page, page 2 disjoint.
+#
+# Two things about the shape:
+#
+# - Every row lists its renditions, and the original (`rel: canonical`) is
+#   ALWAYS the last one — but at index 2, 3 or 4 depending on how many
+#   renditions were made. That is what `[-1]` paths are for. The original is a
+#   JPEG nine times in ten; the rest are TIFF or PNG, and the href says which.
+# - The original's size is published on 86% of rows (measured over 100). The
+#   rest have none and get a square tile until the file is opened, which is
+#   better than borrowing a rendition's size and calling it the original's.
+#
+# The API stops at 10,000 results per query ("Maximum number of search results
+# have been displayed"), so a feed pages 500 times at this limit and ends.
+
+id = "nasa"
+label = "NASA Images"
+category = "photography"
+
+[request]
+url = "https://images-api.nasa.gov/search?q={query}&media_type=image&page={page}&page_size={limit}"
+limit = 20
+format = "json"
+root = "collection.items"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "data[0].nasa_id"
+url = "links[-1].href"
+# The 640px preview every row has, built from the id rather than looked up by
+# position, because its index moves the same way the original's does.
+thumb = "https://images-assets.nasa.gov/image/{data[0].nasa_id}/{data[0].nasa_id}~thumb.jpg"
+# The first rendition is a JPEG no larger than 1280px on every row checked.
+sample = "links[0].href"
+title = "data[0].title"
+author = "data[0].photographer || data[0].secondary_creator || data[0].center"
+page_url = "https://images.nasa.gov/details/{data[0].nasa_id}"
+width = "links[-1].width"
+height = "links[-1].height"
+bytes = "links[-1].size"
+tags = "data[0].keywords"
+license = "=public domain (NASA)"

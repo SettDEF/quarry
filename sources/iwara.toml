@@ -1,0 +1,40 @@
+# Iwara — MMD/3D anime art, keyless, images only (the video half signs its file
+# URLs). Verified live 2026-09-17: pages 0, 5 and 20 all distinct; `thumbnail` is
+# the cover file itself, so its width/height are real.
+# Browse only: `tags=` answers 500 for anything that is not already a site tag,
+# empty included, and this engine has no resolver. Rating is a query parameter
+# rather than a tag, so it is marked per row instead of pushed down.
+id = "iwara"
+label = "Iwara"
+category = "adult"
+# Declared adult, which is what makes every row it returns carry `nsfw`.
+# Without this the category said "adult" and the ROWS said nothing, so
+# switching adult content off hid the source from the filter list and left
+# its pictures in the wall.
+adult = true
+
+[request]
+url = "https://api.iwara.tv/images?page={page0}&sort=date&limit={limit}"
+limit = 50
+format = "json"
+root = "results"
+
+[capabilities]
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "https://i.iwara.tv/image/original/{thumbnail.id}/{thumbnail.name}"
+thumb = "https://i.iwara.tv/image/thumbnail/{thumbnail.id}/{thumbnail.name}"
+sample = "https://i.iwara.tv/image/large/{thumbnail.id}/{thumbnail.name}"
+width = "thumbnail.width"
+height = "thumbnail.height"
+bytes = "thumbnail.size"
+title = "title"
+author = "user.name"
+page_url = "https://www.iwara.tv/image/{id}"
+rating = "rating"
+nsfw_ratings = ["ecchi"]

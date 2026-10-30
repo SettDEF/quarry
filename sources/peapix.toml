@@ -1,0 +1,50 @@
+# Peapix — the Bing wallpaper of the day, and the originals are the real 4K
+# files (3840x2160, ~3.5 MB), not the 1920 previews the site shows.
+#
+# A small, deliberately-chosen source: every row is a professionally shot
+# photograph picked to BE a desktop background, which is a far higher hit rate
+# than any search engine gives. Its feed carries no dimensions and no search,
+# and — measured — ignores both `page` and a date range: it is always the last
+# seven days.
+#
+# So it is paged by MARKET instead. Fourteen Bing markets, seven rows each,
+# refreshed daily: about a hundred 4K photographs that are different tomorrow.
+
+id = "peapix"
+label = "Bing Wallpapers"
+category = "wallpapers"
+kind = "wallpaper"
+
+[request]
+url = "https://peapix.com/bing/feed?country={page_value}"
+limit = 7
+format = "json"
+root = ""
+# Each of these is one page. The order is roughly by how different the markets'
+# picks tend to be from the US one.
+page_values = ["us", "jp", "de", "gb", "fr", "cn", "in", "es", "it", "br", "ca", "au", "nz", "row"]
+
+[capabilities]
+# There is nothing to search: it is an archive of one picture a day.
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+# The image, not the date: the same date is seven different pictures across
+# markets, and a date as the id would collapse them all into one row.
+id = "fullUrl"
+# `imageUrl` is the untouched original — `fullUrl` is the 1920 preview, which
+# the `_1920` in it says out loud.
+url = "imageUrl"
+thumb = "thumbUrl"
+sample = "fullUrl"
+title = "title"
+page_url = "pageUrl"
+author = "copyright"
+# Written as literals because the feed carries no dimensions, and a row with no
+# size is dropped as a collapsed tile. Bing publishes these at 4K; verified
+# against the file (3840x2160, 3.6 MB).
+width = "=3840"
+height = "=2160"

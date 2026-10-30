@@ -1,0 +1,27 @@
+# Zerochan — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "zerochan"
+label = "Zerochan"
+category = "art"
+
+[request]
+url = "https://www.zerochan.net/?json&p={page}&l={limit}"
+limit = 40
+format = "json"
+root = "items"
+
+[capabilities]
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "{thumbnail}"
+width = "width"
+height = "height"
+tags = "tags"
+# No page of its own in this API — the file is the thing.
+page_url = "{thumbnail}"

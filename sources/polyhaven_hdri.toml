@@ -1,0 +1,35 @@
+# Poly Haven HDRIs — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "polyhaven_hdri"
+label = "Poly Haven HDRIs"
+category = "3d"
+# An equirectangular environment map is a picture.
+# `family` is what the file IS; `kind` is what it is FOR. Everything
+# here used to be family=model with no kind at all, so 3,188 textures,
+# HDRIs and meshes alike defaulted to kind=avatar and the rail counted
+# every one of them as a 3D model.
+family = "raster"
+kind = "hdri"
+
+[request]
+url = "https://api.polyhaven.com/assets?type=hdris#page={page_value}"
+limit = 40
+format = "json"
+# Everything in one answer: one page, and the token that says so
+# rides in the fragment, which is never sent to the server.
+page_values = ["1"]
+
+[capabilities]
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "_key"
+url = "thumbnail_url"
+title = "name"
+tags = "categories"
+# No page of its own in this API — the file is the thing.
+page_url = "thumbnail_url"

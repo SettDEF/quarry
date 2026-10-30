@@ -1,0 +1,41 @@
+# SMK — Statens Museum for Kunst, the National Gallery of Denmark. Keyless open
+# API, a IIIF image server, and the native pixel size of every scan in the row.
+#
+# Verified live 2026-09-15: 200 for `keys=*` (everything), 20 rows a page, page
+# 2 disjoint; the IIIF `full/max` render and the `!400,400` thumbnail both
+# answered 200 image/jpeg with no Referer.
+#
+# `image_native` would be the obvious original, but it is a download link to
+# the master TIFF — 32 MB for the first row. `full/max` from the IIIF server is
+# the same pixels as a JPEG, which is what `image_width`/`image_height` describe.
+
+id = "smk"
+label = "SMK — National Gallery of Denmark"
+category = "photography"
+
+[request]
+url = "https://api.smk.dk/api/v1/art/search/?keys={query}&offset={offset}&rows={limit}&filters=%5Bhas_image:true%5D"
+limit = 40
+format = "json"
+root = "items"
+# `*` is Solr for everything — the empty string answers nothing useful.
+browse_term = "*"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "object_number"
+url = "{image_iiif_id}/full/max/0/default.jpg"
+thumb = "{image_iiif_id}/full/!400,400/0/default.jpg"
+# SMK's own pre-rendered 1024px copy, on a separate thumbnail host.
+sample = "image_thumbnail"
+title = "titles[0].title"
+author = "production[0].creator"
+license = "rights"
+page_url = "frontend_url"
+width = "image_width"
+height = "image_height"

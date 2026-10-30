@@ -1,0 +1,61 @@
+{
+  "header": {
+    "user_id": "0",
+    "account_type": "0",
+    "short_limit": "4",
+    "long_limit": "100",
+    "long_remaining": 98,
+    "short_remaining": 3,
+    "status": 0,
+    "results_requested": 16,
+    "index": {
+      "9": { "status": 0, "parent_id": 9, "id": 9, "results": 2 }
+    },
+    "search_depth": "128",
+    "minimum_similarity": 30.0,
+    "query_image_display": "userdata/query.jpg",
+    "query_image": "query.jpg",
+    "results_returned": 2
+  },
+  "results": [
+    {
+      "header": {
+        "similarity": "92.31",
+        "thumbnail": "https://img1.saucenao.com/res/09/09aa11bb22cc33dd44ee55ff66aa77bb88.jpg",
+        "index_id": 9,
+        "index_name": "Index #9: Danbooru - Safe",
+        "dupes": 0,
+        "hidden": 0
+      },
+      "data": {
+        "ext_urls": ["https://danbooru.donmai.us/post/show/1234567"],
+        "danbooru_id": 1234567,
+        "creator": "example artist",
+        "material": "",
+        "characters": "",
+        "source": "",
+        "title": ""
+      }
+    },
+    {
+      "header": {
+        "similarity": "61.04",
+        "thumbnail": "https://img1.saucenao.com/res/09/09112233445566778899aabbccddeeff.jpg",
+        "index_id": 5,
+        "index_name": "Index #5: Pixiv Images",
+        "dupes": 0,
+        "hidden": 0
+      },
+      "data": {
+        "ext_urls": [
+          "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=98765432",
+          "https://www.pixiv.net/en/artworks/98765432"
+        ],
+        "title": "untitled",
+        "pixiv_id": 98765432,
+        "member_name": "example artist",
+        "member_id": 111222
+      }
+    }
+  ]
+}

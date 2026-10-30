@@ -1,0 +1,27 @@
+# Open Library covers — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "openlibrary"
+label = "Open Library covers"
+category = "art"
+
+[request]
+url = "https://openlibrary.org/search.json?q={query}&limit={limit}&page={page}"
+limit = 40
+format = "json"
+root = "docs"
+browse_term = "art"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "key"
+url = "https://covers.openlibrary.org/b/id/{cover_i}-L.jpg"
+title = "title"
+author = "author_name[0]"
+# No page of its own in this API — the file is the thing.
+page_url = "https://covers.openlibrary.org/b/id/{cover_i}-L.jpg"

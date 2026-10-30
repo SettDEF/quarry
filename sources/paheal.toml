@@ -1,0 +1,44 @@
+# rule34.paheal.net — Shimmie board, read from its listing HTML.
+# Verified live 2026-09-17: 70 rows a page, page 2 shares no id with page 1,
+# and a search term must be joined with %20 — "+" answers 404.
+# Supersedes the RSS route: that feed has no dimensions, tags or file type.
+# `adult = true` because the board has no rating of its own to go by.
+
+id = "paheal"
+label = "rule34.paheal"
+category = "adult"
+adult = true
+
+[request]
+url = "https://rule34.paheal.net/post/list/{query}/{page}"
+format = "html"
+limit = 70
+# The term is a path segment here, where "+" is a literal plus.
+space = "%20"
+
+[capabilities]
+text = true
+tags = true
+
+[html]
+row = ".shm-thumb"
+
+[html.fields]
+id = { attr = "data-post-id" }
+ext = { attr = "data-ext" }
+tags = { attr = "data-tags" }
+thumb = { sel = "img", attr = "src" }
+# The one absolute link in a row is the file; the others are the post page and
+# a menu. It carries no extension of its own, hence `map.ext`.
+file = { sel = "a[href^='https://']", attr = "href" }
+
+[map]
+id = "id"
+url = "file"
+thumb = "thumb"
+ext = "ext"
+tags = "tags"
+tags_separator = " "
+page_url = "https://rule34.paheal.net/post/view/{id}"
+# Width/height are deliberately unmapped: the only numbers on a listing are the
+# thumbnail's 192px box, and a wrong size is worse than an unmeasured one.

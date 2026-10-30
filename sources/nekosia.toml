@@ -1,0 +1,30 @@
+# Nekosia — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "nekosia"
+label = "Nekosia"
+category = "art"
+
+[request]
+url = "https://api.nekosia.cat/api/v1/images/catgirl?count={limit}#page={page_value}"
+limit = 12   # its maximum: 24 and 40 both answer 400 (probed 2026-09-22)
+format = "json"
+# Everything in one answer: one page, and the token that says so
+# rides in the fragment, which is never sent to the server.
+page_values = ["1"]
+root = "images"
+
+[capabilities]
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "image.original.url"
+thumb = "image.compressed.url"
+width = "image.original.width"
+height = "image.original.height"
+# No page of its own in this API — the file is the thing.
+page_url = "image.original.url"

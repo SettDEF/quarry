@@ -1,0 +1,21 @@
+[package]
+name = "quarry-board"
+version = "0.1.0"
+edition = "2021"
+description = "quarry board — a reference canvas, native"
+
+[dependencies]
+# egui gives the whole widget layer — menus, sliders, text fields, text
+# rendering — which is the part RIA had to hand-write as 2,700 lines of its own
+# toolkit. The canvas itself is custom painting on top of it.
+eframe = { version = "0.32", default-features = false, features = ["default_fonts", "glow", "wayland", "x11"] }
+egui = "0.32"
+egui-phosphor = "0.10"
+egui_extras = { version = "0.32", features = ["image"] }
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp", "gif"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+lto = "thin"
+strip = true

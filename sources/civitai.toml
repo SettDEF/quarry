@@ -1,0 +1,29 @@
+# Civitai — adult AI images, keyless. Verified live 2026-09-17: `nsfw=true` gave
+# 100 of 100 nsfw rows, and `page=2` answered identical rows to `page=1`, so the
+# page counter cycles the time window instead (peapix does the same with
+# markets). No text search: the images endpoint has no query parameter.
+id = "civitai"
+label = "Civitai"
+category = "adult"
+adult = true
+
+[request]
+url = "https://civitai.com/api/v1/images?limit={limit}&nsfw=true&sort=Most%20Reactions&period={page_value}"
+limit = 100
+format = "json"
+root = "items"
+page_values = ["Day", "Week", "Month", "Year", "AllTime"]
+
+[capabilities]
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "url"
+width = "width"
+height = "height"
+author = "username"
+page_url = "https://civitai.com/images/{id}"

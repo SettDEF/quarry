@@ -1,0 +1,36 @@
+# Feddit — keyless. Probed live 2026-09-22: the endpoint answered,
+# the rows parsed, and the mapped fields resolved on the first row.
+# Anything that failed that check is not in this directory (see TASKS.md).
+id = "lemmy_feddit"
+label = "Feddit"
+category = "photography"
+
+[request]
+url = "https://feddit.org/api/v3/post/list?type_=All&sort=Hot&limit={limit}&page={page}"
+limit = 40
+format = "json"
+root = "posts"
+
+[capabilities]
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "post.id"
+url = "post.url"
+thumb = "post.thumbnail_url"
+title = "post.name"
+author = "creator.name"
+page_url = "post.ap_id"
+
+# WHO SAYS A POST IS ADULT: the poster, or the community it is in.
+#
+# Lemmy marks both — `post.nsfw` on the post and `community.nsfw` on the whole
+# community — and neither was mapped, so every row arrived marked safe. Two
+# paths joined with ` + ` are read together, and a row is adult if EITHER says
+# so, which is the careful answer: a safe-looking post in an adult community is
+# still in an adult community. Probed live 2026-09-29: both fields present.
+rating = "post.nsfw + community.nsfw"
+nsfw_ratings = ["true"]

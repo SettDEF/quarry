@@ -1,0 +1,42 @@
+# gyate.net — Shimmie board, read from its listing HTML.
+# Verified live 2026-09-17: 28 rows a page, page 2 shares no id with page 1.
+# Older theme: thumbnails live at /thumb/... and the file at the same path
+# under /image/, with no extension in either (HEAD-checked 200). No per-row
+# rating, so `adult = true`.
+
+id = "gyate"
+label = "gyate.net"
+category = "adult"
+adult = true
+
+[request]
+url = "https://gyate.net/post/list/{query}/{page}"
+format = "html"
+limit = 28
+space = "%20"
+
+[capabilities]
+text = true
+tags = true
+
+[html]
+row = ".shm-thumb"
+
+[html.fields]
+id = { attr = "data-post-id" }
+tags = { attr = "data-tags" }
+mime = { attr = "data-mime" }
+width = { attr = "data-width" }
+height = { attr = "data-height" }
+thumb = { sel = "img", attr = "src" }
+
+[map]
+id = "id"
+url = "{thumb|replace:/thumb/:/image/}"
+thumb = "thumb"
+ext = "mime"
+width = "width"
+height = "height"
+tags = "tags"
+tags_separator = " "
+page_url = "https://gyate.net/post/view/{id}"
