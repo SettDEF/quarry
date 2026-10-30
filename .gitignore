@@ -6,7 +6,7 @@ build/
 # artefacts: ~36MB of them were committed, and binaries belong in a release
 # rather than in every clone.
 pkg/
-src/
+/src/
 *.pkg.tar.zst
 *.pkg.tar.xz
 
