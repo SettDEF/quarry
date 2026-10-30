@@ -1,0 +1,31 @@
+{
+ "data": {
+  "Page": {
+   "pageInfo": {
+    "hasNextPage": true
+   },
+   "characters": [
+    {
+     "id": 500,
+     "name": {
+      "full": "Aveline Marsk"
+     },
+     "image": {
+      "large": "https://s4.anilist.co/file/anilistcdn/character/large/b500-fixture.png"
+     },
+     "siteUrl": "https://anilist.co/character/500/AvelineMarsk"
+    },
+    {
+     "id": 513,
+     "name": {
+      "full": "Corin Dulac"
+     },
+     "image": {
+      "large": "https://s4.anilist.co/file/anilistcdn/character/large/b513-fixture.png"
+     },
+     "siteUrl": "https://anilist.co/character/513/CorinDulac"
+    }
+   ]
+  }
+ }
+}

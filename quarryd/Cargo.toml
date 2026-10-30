@@ -7,7 +7,7 @@ description = "quarry daemon — catalog, query and export behind the v1 wire pr
 [dependencies]
 # The fetching half of what used to be `scrape.rs`, shared with cairn. Path
 # rather than a version: the two move together and there is no registry in it.
-fetchkit = { path = "../../fetchkit" }
+fetchkit = { path = "../fetchkit" }
 # Only what the protocol needs. The mock backend reads a fixture; the crawler,
 # SQLite and the image pipeline arrive in later phases with their own deps.
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "io-util", "signal", "fs", "sync"] }
