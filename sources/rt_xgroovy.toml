@@ -1,0 +1,45 @@
+# rt.xgroovy.com — rule34.xxx mirror, part of the "groovy" family of boards.
+#
+# Reads the same dapi JSON API as rule34.xxx and xbooru, so the same query
+# syntax and tag vocabulary applies. STILLS ONLY — its `webm` tag returns
+# GIFs.
+#
+# No credentials needed: the dapi index endpoint (page=dapi&s=post&q=index)
+# is public and does not require an API key.
+#
+# Add your own queries in the filter panel: `author:<name>`, `rating:e`,
+# `width:>1920`, etc.
+#
+# If you ever hit "0 results" while other boards answer fine, the site may
+# have changed its API shape — check the network tab in the browser DevTools
+# and update the [request] block below.
+
+id = "rt_xgroovy"
+label = "rt.xgroovy.com"
+category = "adult"
+adult = true
+
+[request]
+url = "https://rt.xgroovy.com/index.php?page=dapi&s=post&q=index&json=1&limit={limit}&pid={page0}&tags={tags}"
+author_tag = "{author}"
+tag_resolver = "gelbooru"
+limit = 40
+format = "json"
+root = ""
+
+[capabilities]
+text = true
+tags = true
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "file_url"
+thumb = "preview_url"
+sample = "sample_url"
+width = "width"
+height = "height"
+tags = "tags"
+tags_separator = " "
+page_url = "https://rt.xgroovy.com/index.php?page=post&s=view&id={id}"

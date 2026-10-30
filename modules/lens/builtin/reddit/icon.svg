@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="linear-gradient-1" x1="64" y1="8" x2="64" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#372c27"/>
+      <stop offset="1" stop-color="#1f1916"/>
+    </linearGradient>
+  </defs>
+  <!-- Reddit lens: a post and its thread, the up-voted root in the accent. Drawn with vectorcraft-cli. -->
+  <title>Reddit</title>
+  <g id="Layer_1" data-name="Layer 1">
+    <path d="M36 8 L92 8 C107.464 8 120 20.536 120 36 L120 92 C120 107.464 107.464 120 92 120 L36 120 C20.536 120 8 107.464 8 92 L8 36 C8 20.536 20.536 8 36 8 Z" fill="url(#linear-gradient-1)"/>
+    <path d="M36 52 L36 84 C36 89 40 92 45 92 L48 92" fill="none" stroke="#dcd6d8" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M36 58 C36 63 40 66 45 66 L48 66" fill="none" stroke="#dcd6d8" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M62 32 L98 32 C101.314 32 104 34.686 104 38 L104 38 C104 41.314 101.314 44 98 44 L62 44 C58.686 44 56 41.314 56 38 L56 38 C56 34.686 58.686 32 62 32 Z" fill="#dcd6d8"/>
+    <path d="M49 66 C49 62.134 52.134 59 56 59 C59.866 59 63 62.134 63 66 C63 69.866 59.866 73 56 73 C52.134 73 49 69.866 49 66 Z" fill="#dcd6d8"/>
+    <path d="M76 60 L96 60 C99.314 60 102 62.686 102 66 L102 66 C102 69.314 99.314 72 96 72 L76 72 C72.686 72 70 69.314 70 66 L70 66 C70 62.686 72.686 60 76 60 Z" fill="#dcd6d8"/>
+    <path d="M49 92 C49 88.134 52.134 85 56 85 C59.866 85 63 88.134 63 92 C63 95.866 59.866 99 56 99 C52.134 99 49 95.866 49 92 Z" fill="#dcd6d8"/>
+    <path d="M76 86 L86 86 C89.314 86 92 88.686 92 92 L92 92 C92 95.314 89.314 98 86 98 L76 98 C72.686 98 70 95.314 70 92 L70 92 C70 88.686 72.686 86 76 86 Z" fill="#dcd6d8"/>
+    <path d="M24 38 C24 31.373 29.373 26 36 26 C42.627 26 48 31.373 48 38 C48 44.627 42.627 50 36 50 C29.373 50 24 44.627 24 38 Z" fill="#f0884a"/>
+    <path d="M30 41 L36 35 L42 41" fill="none" stroke="#2a1f1a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

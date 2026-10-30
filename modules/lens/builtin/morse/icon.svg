@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="linear-gradient-1" x1="64" y1="8" x2="64" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#283338"/>
+      <stop offset="1" stop-color="#191f22"/>
+    </linearGradient>
+  </defs>
+  <!-- Morse: · — · on a telegraph wire, the dash in the accent. Drawn with vectorcraft-cli. -->
+  <title>Morse</title>
+  <g id="Layer_1" data-name="Layer 1">
+    <path d="M36 8 L92 8 C107.464 8 120 20.536 120 36 L120 92 C120 107.464 107.464 120 92 120 L36 120 C20.536 120 8 107.464 8 92 L8 36 C8 20.536 20.536 8 36 8 Z" fill="url(#linear-gradient-1)"/>
+    <path d="M14 64 L114 64" fill="none" stroke="#36414a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M22 44 L106 44" fill="none" stroke="#262f33" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M22 84 L106 84" fill="none" stroke="#262f33" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M21 64 C21 59.029 25.029 55 30 55 C34.971 55 39 59.029 39 64 C39 68.971 34.971 73 30 73 C25.029 73 21 68.971 21 64 Z" fill="#dcd6d8"/>
+    <path d="M53 55 L75 55 C79.971 55 84 59.029 84 64 L84 64 C84 68.971 79.971 73 75 73 L53 73 C48.029 73 44 68.971 44 64 L44 64 C44 59.029 48.029 55 53 55 Z" fill="#4fc3d9"/>
+    <path d="M89 64 C89 59.029 93.029 55 98 55 C102.971 55 107 59.029 107 64 C107 68.971 102.971 73 98 73 C93.029 73 89 68.971 89 64 Z" fill="#dcd6d8"/>
+  </g>
+</svg>

@@ -1,0 +1,43 @@
+# Kemono — posts mirrored from Patreon, Fanbox, Fantia and the like.
+#
+# JSON API, keyless: `/api/v1/posts?q=&o=` — 50 per page, `o` an offset, an
+# empty `q` lists the newest. Verified live 2026-10-16 (kemono.su and .party
+# are dead; .cr answers).
+#
+# The API host 429s anything without `Accept: text/css` — its DDoS guard's
+# filter, not a rate limit. Hence `headers`.
+#
+# Rows carry no size and no rating. Mostly adult art, so `adult = true` keeps
+# `-nsfw` honest. Thumbnails come from img.kemono.cr and are reliable; the
+# originals redirect to data nodes (n1…n4) that hung for 40 s when probed, so
+# a tile can fill while opening the original fails.
+id = "kemono"
+label = "Kemono"
+category = "adult"
+adult = true
+
+[request]
+url = "https://kemono.cr/api/v1/posts?q={query}&o={offset}"
+format = "json"
+root = "posts"
+limit = 50
+headers = { Accept = "text/css" }
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+# Post ids are per service; the triple is unique.
+id = "{service}-{user}-{id}"
+# The post's main file, else its first attachment; a text-only post has
+# neither and is dropped as unusable.
+url = "https://kemono.cr/data{file.path} || https://kemono.cr/data{attachments[0].path}"
+# Attachment first: a video post's file has no thumbnail (404) but its first
+# attachment is usually the poster image.
+thumb = "https://img.kemono.cr/thumbnail/data{attachments[0].path} || https://img.kemono.cr/thumbnail/data{file.path}"
+title = "title"
+tags = "service"
+page_url = "https://kemono.cr/{service}/user/{user}/post/{id}"

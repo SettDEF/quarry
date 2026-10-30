@@ -1,0 +1,43 @@
+{
+  "page": 1,
+  "per_page": 2,
+  "total_pages": 2500,
+  "coubs": [
+    {
+      "id": 1000000001,
+      "permalink": "aaaaaaaaaa",
+      "title": "A cat considers the stairs",
+      "duration": 10,
+      "not_safe_for_work": null,
+      "picture": "https://media.example.test/assets/0001/image/big.jpg",
+      "file_versions": {
+        "mobile": {
+          "video": "https://media.example.test/assets/0001/mobile/1.mp4",
+          "audio": ["https://media.example.test/assets/0001/mobile/audio.mp3"]
+        },
+        "share": { "default": "https://media.example.test/assets/0001/share/default.mp4" }
+      },
+      "dimensions": { "big": [640, 360], "med": [640, 360] },
+      "channel": { "id": 1, "permalink": "nysorl", "title": "Nysorl" },
+      "tags": [ { "id": 1, "title": "cats", "value": "cats" }, { "id": 2, "title": "loop", "value": "loop" } ]
+    },
+    {
+      "id": 1000000002,
+      "permalink": "bbbbbbbbbb",
+      "title": "Rain on a tin roof",
+      "duration": 6,
+      "not_safe_for_work": true,
+      "picture": "https://media.example.test/assets/0002/image/big.jpg",
+      "file_versions": {
+        "mobile": {
+          "video": "https://media.example.test/assets/0002/mobile/1.mp4",
+          "audio": ["https://media.example.test/assets/0002/mobile/audio.mp3"]
+        },
+        "share": { "default": "https://media.example.test/assets/0002/share/default.mp4" }
+      },
+      "dimensions": { "big": [1280, 720], "med": [640, 360] },
+      "channel": { "id": 2, "permalink": "velkel", "title": "Velkel" },
+      "tags": [ { "id": 3, "title": "rain", "value": "rain" } ]
+    }
+  ]
+}

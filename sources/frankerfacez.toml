@@ -1,0 +1,31 @@
+# FrankerFaceZ — animated Twitch emotes, keyless. Probed live 2026-10-21:
+# `animated=true` answered 10,562 emotes (246 for "cat"), and every one has
+# `/animated/4.gif` beside the WebP the API lists (catJAM: 200, image/gif).
+#
+# Only the animated half on purpose: still emotes are what emoji.gg already has.
+# The API's width/height are the 1x size, not the 4x file's, so they are left
+# out rather than filed as a 28×28 picture; the tile is square either way.
+id = "frankerfacez"
+label = "FrankerFaceZ"
+category = "icons"
+kind = "emote"
+
+[request]
+url = "https://api.frankerfacez.com/v1/emotes?q={query}&sort=count-desc&animated=true&per_page={limit}&page={page}"
+limit = 50
+format = "json"
+root = "emoticons"
+
+[capabilities]
+text = true
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "id"
+url = "https://cdn.frankerfacez.com/emote/{id}/animated/4.gif"
+thumb = "https://cdn.frankerfacez.com/emote/{id}/animated/2.gif"
+title = "name"
+author = "owner.display_name"
+page_url = "https://www.frankerfacez.com/emoticon/{id}-{name}"

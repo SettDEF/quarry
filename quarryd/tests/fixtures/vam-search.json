@@ -1,0 +1,35 @@
+{
+  "info": { "version": "2.0", "record_count": 2, "page": 1, "pages": 1 },
+  "records": [
+    {
+      "systemNumber": "O1000001",
+      "accessionNumber": "P.1-1900",
+      "objectType": "Portrait",
+      "_primaryTitle": "",
+      "_primaryMaker": { "name": "Aveline Marsk", "association": "attributed" },
+      "_primaryImageId": "2015AA0001",
+      "_primaryDate": "ca. 1750",
+      "_primaryPlace": "Britain",
+      "_images": {
+        "_primary_thumbnail": "https://framemark.example.test/collections/2015AA0001/full/!100,100/0/default.jpg",
+        "_iiif_image_base_url": "https://framemark.example.test/collections/2015AA0001/",
+        "imageResolution": "high"
+      }
+    },
+    {
+      "systemNumber": "O1000002",
+      "accessionNumber": "P.2-1900",
+      "objectType": "Drawing",
+      "_primaryTitle": "A Quiet Harbour",
+      "_primaryMaker": { "name": "Bramwell Quill", "association": "maker" },
+      "_primaryImageId": "2015AA0002",
+      "_primaryDate": "1812",
+      "_primaryPlace": "Britain",
+      "_images": {
+        "_primary_thumbnail": "https://framemark.example.test/collections/2015AA0002/full/!100,100/0/default.jpg",
+        "_iiif_image_base_url": "https://framemark.example.test/collections/2015AA0002/",
+        "imageResolution": "high"
+      }
+    }
+  ]
+}

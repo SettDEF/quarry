@@ -1,0 +1,9 @@
+{
+  "id": "urlportal",
+  "name": "Open links with urlportal",
+  "version": "1.0",
+  "author": "quarry",
+  "description": "Every web link quarry opens — from a chat, a picture's page, a source — goes to your urlportal script (~/.scripts/urlportal, or urlportal on your PATH) instead of the system's default browser. If the script is missing or fails, the link opens the usual way.",
+  "entry": "Main.qml",
+  "enabledByDefault": false
+}

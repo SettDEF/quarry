@@ -1,5 +1,18 @@
-pkg/
-src/*.pkg.tar*
-*.pkg.tar.zst
+# Rust / CMake build output
 target/
-.claude/
+build/
+
+# makepkg working directories and the packages it produces. These are build
+# artefacts: ~36MB of them were committed, and binaries belong in a release
+# rather than in every clone.
+pkg/
+src/
+*.pkg.tar.zst
+*.pkg.tar.xz
+
+# Node
+node_modules/
+
+# A convenience symlink into a sibling checkout; it resolves on one machine
+# and dangles everywhere else.
+browser/tela-chrome

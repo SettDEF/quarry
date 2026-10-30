@@ -1,0 +1,10 @@
+# Signals with no listener, accepted as of 2026-09-30.
+#
+# Every line is a REAL gap, not a false positive. They are listed rather than
+# fixed so that a NEW one fails the build, which is the whole point of the file.
+# Delete a line when the gap is closed; do not add one without a reason.
+
+Catalog.boardChanged_   # emitted when board items land; GalleryBoard races it with a 120ms timer instead (see its comment at :294). Fixing it means connecting this and dropping the race.
+Dispatch.sent           # no UI reacts to a send completing; ChatPickerSheet binds `sendError` instead, so feedback only exists while that sheet is open.
+Dispatch.sendFailed     # same gap, worse: a send started from the context menu fails silently with the sheet closed.
+Scheme.reloaded         # emitted after a colour scheme reload; nothing re-reads. Appearance re-binds through properties, so this may simply be redundant.

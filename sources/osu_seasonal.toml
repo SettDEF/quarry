@@ -1,0 +1,38 @@
+# osu! seasonal backgrounds — the art osu! rotates through each season, keyless.
+#
+# `GET https://osu.ppy.sh/api/v2/seasonal-backgrounds` answers
+# `{ ends_at, backgrounds: [ { url, user: { username, … } } ] }` — one list,
+# no paging and no search, so every page is the same list and repeats are
+# dropped as known. The shape is the one the shell's random_osu_wall.sh read
+# (`.backgrounds[].url`).
+#
+# NOT PROBED LIVE: on 2026-10-20 osu.ppy.sh's Cloudflare answered 403 to this
+# machine for every user agent (quarry's, curl's, a browser's). The fixture is
+# built from that documented shape; replace it with a real capture once the
+# block lifts. No sizes are written: none were measured, and a guessed size is
+# worse than none. `kind = "wallpaper"` is what the art is made for.
+id = "osu_seasonal"
+label = "osu! seasonal backgrounds"
+category = "wallpapers"
+kind = "wallpaper"
+
+[request]
+url = "https://osu.ppy.sh/api/v2/seasonal-backgrounds"
+format = "json"
+root = "backgrounds"
+limit = 50
+# One list, one page: a single page value is how a manifest says so (page_limit 1).
+page_values = ["all"]
+
+[capabilities]
+text = false
+tags = false
+nsfw = false
+sort = false
+
+[map]
+id = "url"
+url = "url"
+thumb = "url"
+author = "user.username"
+page_url = "https://osu.ppy.sh/home"

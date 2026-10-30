@@ -1,0 +1,1315 @@
+#!/usr/bin/env python3
+"""quarry term — the catalogue in a terminal: search, browse, play, save.
+
+    quarry term [QUERY]                 browse full-screen (arrows, / to search)
+    quarry term show QUERY [-n N]       print a strip of results into the scrollback
+    quarry term cat ID|FILE|URL         one picture, large; animated ones play
+
+Options (any command):
+    --gfx blocks|kitty    how pictures are drawn (default: detected)
+    --size N              tile width in columns (browse/show)
+    --live                show: ask the sites first, not only the catalogue
+    --loops N             cat: how many times an animation plays (0 = until a key)
+
+$QUARRY_TERM_MPV adds options to mpv, which plays video and audio (p).
+
+In zash inside zeit, browsing opens a stage beside the grid: a zeit web pane
+that zash draws with Chrome, so the selected item is there in real pixels —
+the original, GIFs moving, video playing. v hides and shows it;
+QUARRY_TERM_STAGE=0 turns it off, =1 forces it.
+
+WHY HALF-BLOCKS BY DEFAULT. Inside zeit, kitty graphics never reach zash: the
+pane parser drops APC sequences, so `a=T` placements vanish. "▀" with a 24-bit
+foreground and background is two pixels per cell, survives every multiplexer,
+and animates by redrawing text. Kitty graphics are used where they are known to
+arrive: kitty itself, and zash outside zeit and tmux.
+
+Talks to quarryd over its socket with `find` (keeps no result, so the gallery
+window's `queryId` is never invalidated), `more` (the same live site search the
+app uses), `thumb`, `export` and nothing else.
+"""
+
+import base64
+import hashlib
+import json
+import os
+import re
+import select
+import shutil
+import signal
+import socket
+import subprocess
+import sys
+import termios
+import threading
+import time
+import tty
+import urllib.error
+import urllib.request
+
+try:
+    from PIL import Image, ImageSequence
+except ImportError:
+    sys.exit("quarry term needs Pillow: sudo pacman -S python-pillow")
+
+SOCK = os.environ.get("QUARRY_SOCK") or os.path.join(
+    os.environ.get("XDG_RUNTIME_DIR", "/tmp"), "quarry", "sock")
+CACHE = os.path.join(os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache")),
+                     "quarry", "term")
+PAGE = 120
+VIDEO_EXT = {"mp4", "webm", "mkv", "mov", "m4v", "avi", "ogv"}
+AUDIO_EXT = {"mp3", "ogg", "oga", "flac", "wav", "m4a", "opus", "aac"}
+ZOOMS = [8, 12, 16, 22, 30, 40, 56]
+MAX_FRAMES = 240
+SPIN = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
+
+
+# ── the daemon ───────────────────────────────────────────────────────────────
+
+class Daemon:
+    """One connection; replies matched by id, events handed to `on_event`."""
+
+    def __init__(self, on_event=None):
+        self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        try:
+            self.sock.connect(SOCK)
+        except OSError:
+            subprocess.run(["systemctl", "--user", "start", "quarryd"],
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            for _ in range(50):
+                time.sleep(0.1)
+                try:
+                    self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                    self.sock.connect(SOCK)
+                    break
+                except OSError:
+                    continue
+            else:
+                sys.exit(f"quarry term: the daemon is not running ({SOCK})")
+        self.on_event = on_event
+        self.lock = threading.Lock()
+        self.next_id = 0
+        self.waiting = {}
+        threading.Thread(target=self._read, daemon=True).start()
+
+    def _read(self):
+        buf = b""
+        while True:
+            try:
+                chunk = self.sock.recv(1 << 16)
+            except OSError:
+                chunk = b""
+            if not chunk:
+                for slot in list(self.waiting.values()):
+                    slot[1] = {"ok": False, "err": "daemon closed the connection"}
+                    slot[0].set()
+                return
+            buf += chunk
+            while b"\n" in buf:
+                line, buf = buf.split(b"\n", 1)
+                try:
+                    msg = json.loads(line)
+                except ValueError:
+                    continue
+                if msg.get("t") == "ev":
+                    if self.on_event:
+                        self.on_event(msg.get("m"), msg.get("p"))
+                    continue
+                slot = self.waiting.pop(msg.get("id"), None)
+                if slot:
+                    slot[1] = msg
+                    slot[0].set()
+
+    def call(self, method, params=None, timeout=120):
+        with self.lock:
+            self.next_id += 1
+            rid = self.next_id
+            slot = [threading.Event(), None]
+            self.waiting[rid] = slot
+            frame = {"t": "req", "id": rid, "m": method, "p": params or {}}
+            self.sock.sendall((json.dumps(frame) + "\n").encode())
+        if not slot[0].wait(timeout):
+            self.waiting.pop(rid, None)
+            raise RuntimeError(f"{method}: no answer in {timeout}s")
+        msg = slot[1]
+        if not msg.get("ok"):
+            raise RuntimeError(f"{method}: {msg.get('err') or 'failed'}")
+        return msg.get("p") or {}
+
+
+# ── pictures ─────────────────────────────────────────────────────────────────
+
+def detect_gfx():
+    if os.environ.get("QUARRY_TERM_GFX"):
+        return os.environ["QUARRY_TERM_GFX"]
+    if os.environ.get("ZEIT_PANE") or os.environ.get("TMUX"):
+        return "blocks"
+    if os.environ.get("TERM") == "xterm-kitty" or os.environ.get("TERM_PROGRAM") in ("kitty", "zash"):
+        return "kitty"
+    return "blocks"
+
+
+def fit(img, cols, rows, px_per_row=2):
+    """Scale into a cols×(rows·px_per_row) box, keeping the shape."""
+    w, h = img.size
+    box_w, box_h = cols, rows * px_per_row
+    s = min(box_w / max(w, 1), box_h / max(h, 1))
+    return img.resize((max(1, round(w * s)), max(1, round(h * s))), Image.LANCZOS)
+
+
+def blocks(img, cols, rows):
+    """Lines of exactly `cols` cells, the picture centred in a cols×rows box."""
+    img = fit(img.convert("RGBA"), cols, rows)
+    w, h = img.size
+    px = img.load()
+    left = (cols - w) // 2
+    top = (rows * 2 - h) // 2
+    top -= top % 2  # keep pixel rows paired on cell boundaries
+
+    def at(x, y):
+        x -= left
+        y -= top
+        if 0 <= x < w and 0 <= y < h:
+            r, g, b, a = px[x, y]
+            if a >= 96:
+                return r, g, b
+        return None
+
+    lines = []
+    for row in range(rows):
+        out, fg, bg = [], None, None
+        for x in range(cols):
+            t, b = at(x, row * 2), at(x, row * 2 + 1)
+            if t is None and b is None:
+                ch, nfg, nbg = " ", fg, "49"
+            elif b is None:
+                ch, nfg, nbg = "▀", "38;2;%d;%d;%d" % t, "49"
+            elif t is None:
+                ch, nfg, nbg = "▄", "38;2;%d;%d;%d" % b, "49"
+            else:
+                ch, nfg, nbg = "▀", "38;2;%d;%d;%d" % t, "48;2;%d;%d;%d" % b
+            codes = []
+            if nfg != fg:
+                codes.append(nfg)
+                fg = nfg
+            if nbg != bg:
+                codes.append(nbg)
+                bg = nbg
+            if codes:
+                out.append("\x1b[" + ";".join(codes) + "m")
+            out.append(ch)
+        out.append("\x1b[0m")
+        lines.append("".join(out))
+    return lines
+
+
+def solid(hexcolor, cols, rows):
+    """A loading tile in the picture's dominant colour, the way the app fills it."""
+    m = re.fullmatch(r"#?([0-9a-fA-F]{6})", hexcolor or "")
+    if not m:
+        return [" " * cols for _ in range(rows)]
+    r, g, b = (int(m.group(1)[i:i + 2], 16) for i in (0, 2, 4))
+    return ["\x1b[48;2;%d;%d;%dm%s\x1b[0m" % (r // 2, g // 2, b // 2, " " * cols)] * rows
+
+
+def frames_of(path, box):
+    """Every frame (composited) as (image, seconds), shrunk to the box first."""
+    img = Image.open(path)
+    out = []
+    for i, frame in enumerate(ImageSequence.Iterator(img)):
+        if i >= MAX_FRAMES:
+            break
+        f = frame.convert("RGBA")
+        f.thumbnail(box, Image.LANCZOS)
+        out.append((f, max(0.02, (frame.info.get("duration") or 100) / 1000)))
+    return out
+
+
+class Kitty:
+    """Placements by file path. Each slot keeps one image id so a frame replaces it."""
+
+    def __init__(self, out):
+        self.out = out
+
+    def png(self, img):
+        os.makedirs(CACHE, exist_ok=True)
+        key = hashlib.sha1(img.tobytes() + repr(img.size).encode()).hexdigest()[:20]
+        path = os.path.join(CACHE, f"k-{key}.png")
+        if not os.path.exists(path):
+            img.convert("RGBA").save(path)  # zash wants 8-bit, not indexed
+        return path
+
+    def place(self, slot, img, col, row, cols, rows):
+        path = self.png(img)
+        w, h = img.size
+        # Shrink the cell box to the picture's shape so it is not stretched;
+        # a cell is about twice as tall as it is wide.
+        s = min(cols / max(w, 1), rows * 2 / max(h, 1))
+        c, r = max(1, round(w * s)), max(1, round(h * s / 2))
+        col += (cols - c) // 2
+        row += (rows - r) // 2
+        data = base64.b64encode(path.encode()).decode()
+        return (f"\x1b_Ga=d,d=i,i={slot},q=2\x1b\\\x1b[{row + 1};{col + 1}H"
+                f"\x1b_Ga=T,f=100,t=f,i={slot},c={c},r={r},C=1,q=2;{data}\x1b\\")
+
+    @staticmethod
+    def clear():
+        return "\x1b_Ga=d,d=A,q=2\x1b\\"
+
+
+# ── items ────────────────────────────────────────────────────────────────────
+
+def is_video(it):
+    return it.get("family") == "video" or (it.get("ext") or "").lower() in VIDEO_EXT
+
+
+def is_audio(it):
+    return it.get("family") == "audio" or (it.get("ext") or "").lower() in AUDIO_EXT
+
+
+def moves(it):
+    return bool(it.get("animated")) and not is_video(it)
+
+
+def fetch_original(it):
+    """The file itself, for animation: the thumbnail ladder is still frames."""
+    url = it.get("url") or ""
+    ext = (it.get("ext") or "bin").lower()
+    os.makedirs(CACHE, exist_ok=True)
+    path = os.path.join(CACHE, hashlib.sha1(url.encode()).hexdigest()[:24] + "." + ext)
+    if os.path.exists(path):
+        return path
+    headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) quarry-term"}
+    if it.get("page_url"):
+        headers["Referer"] = it["page_url"]
+    req = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(req, timeout=25) as r:
+        data = r.read(40 << 20)
+    tmp = path + ".part"
+    with open(tmp, "wb") as f:
+        f.write(data)
+    os.replace(tmp, path)
+    return path
+
+
+# ── the stage: real pixels beside the grid (zash inside zeit) ────────────────
+
+STAGE_PAGE = """<!doctype html><meta charset=utf-8><title>quarry</title>
+<style>
+html,body{margin:0;height:100%;background:#0b0b0d;color:#ccc;font:13px system-ui,sans-serif;overflow:hidden}
+#box{position:fixed;inset:0 0 28px 0;display:flex;align-items:center;justify-content:center}
+#box>*{width:100%;height:100%;object-fit:contain}
+#cap{position:fixed;left:0;right:0;bottom:0;height:28px;line-height:28px;padding:0 10px;
+     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#999}
+#cap b{color:#eee;font-weight:600}
+</style>
+<div id=box></div><div id=cap>quarry</div>
+<script>
+let v = 0;
+const box = document.getElementById('box'), cap = document.getElementById('cap');
+function show(s) {
+  box.textContent = '';
+  cap.innerHTML = '';
+  if (!s.kind) return;
+  const b = document.createElement('b'); b.textContent = s.title; cap.append(b, ' · ' + s.info);
+  if (s.kind === 'video' || s.kind === 'audio') {
+    const m = document.createElement(s.kind);
+    Object.assign(m, {src: s.src, poster: s.thumb || '', autoplay: true, loop: true, muted: true, controls: true});
+    m.playsInline = true;
+    if (s.kind === 'audio' && s.thumb) { const i = new Image(); i.src = s.thumb; box.append(i); }
+    box.append(m);
+    m.play().catch(() => {});
+    return;
+  }
+  // The thumbnail at once, the original over it when it has arrived.
+  const i = new Image();
+  i.src = s.thumb || s.src;
+  box.append(i);
+  if (s.thumb && s.src) {
+    const full = new Image();
+    full.onload = () => { if (i.isConnected) i.replaceWith(full); };
+    full.src = s.src;
+  }
+}
+async function poll() {
+  for (;;) {
+    try {
+      const s = await (await fetch('/now?after=' + v)).json();
+      if (s.v !== v) { v = s.v; show(s); }
+    } catch (e) { await new Promise(r => setTimeout(r, 1000)); }
+  }
+}
+poll();
+</script>
+"""
+
+
+class Stage:
+    """A zeit web pane beside the browser: zash draws it with Chrome, so it shows
+    the original — full resolution, GIFs moving, video playing. kitty graphics
+    can't get through zeit; a web pane is the one picture zeit hands to zash."""
+
+    def __init__(self):
+        import http.server
+        self.cv = threading.Condition()
+        self.v, self.now = 0, {"v": 0}
+        self.files, self.remote = {}, {}   # token -> local path / item
+        self.pane = None
+        stage = self
+
+        class Handler(http.server.BaseHTTPRequestHandler):
+            def log_message(self, *_):
+                pass
+
+            def do_GET(self):
+                try:
+                    stage.serve(self)
+                except (BrokenPipeError, ConnectionResetError):
+                    pass
+
+        self.server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        self.server.daemon_threads = True
+        self.url = f"http://127.0.0.1:{self.server.server_address[1]}/"
+        threading.Thread(target=self.server.serve_forever, daemon=True).start()
+
+    @staticmethod
+    def wanted():
+        force = os.environ.get("QUARRY_TERM_STAGE")
+        if force in ("0", "1"):
+            return force == "1" and shutil.which("zeit") is not None
+        return bool(os.environ.get("ZEIT_PANE")) and os.environ.get("TERM_PROGRAM") == "zash" \
+            and shutil.which("zeit") is not None
+
+    @staticmethod
+    def _zeit(*args):
+        r = subprocess.run(["zeit", *args], capture_output=True, text=True, timeout=5)
+        return r.stdout
+
+    def _panes(self):
+        return {line.split(":", 1)[0].lstrip("%") for line in self._zeit("list-panes").splitlines() if ":" in line}
+
+    def open(self):
+        """Split our pane: the stage on the right, the keys back on the left."""
+        if self.pane:
+            return
+        before = self._panes()
+        self._zeit("web", "-h", self.url)
+        new = self._panes() - before
+        self.pane = new.pop() if len(new) == 1 else None
+        self._zeit("select-pane", "-L")
+
+    def close(self):
+        if self.pane:
+            self._zeit("kill-pane", "-t", "%" + self.pane)
+            self.pane = None
+
+    def show(self, it, thumb=None):
+        """Point the page at an item. Cheap: the page long-polls and takes the latest."""
+        with self.cv:
+            self.v += 1
+            if not it:
+                self.now = {"v": self.v}
+            else:
+                n = str(self.v)
+                self.remote[n] = it
+                if thumb:
+                    self.files[n] = thumb
+                kind = "video" if is_video(it) else "audio" if is_audio(it) else "image"
+                dims = f"{it.get('w', 0)}×{it.get('h', 0)}" if it.get("w") else ""
+                self.now = {"v": self.v, "kind": kind, "src": f"/m/{n}", "thumb": f"/t/{n}" if thumb else "",
+                            "title": it.get("title") or it["id"],
+                            "info": " · ".join(x for x in (it.get("source"), dims,
+                                                           human(it["bytes"]) if it.get("bytes") else "") if x)}
+            # Only the last few are still being looked at.
+            for d in (self.remote, self.files):
+                for k in [k for k in d if int(k) < self.v - 8]:
+                    del d[k]
+            self.cv.notify_all()
+
+    def serve(self, h):
+        path, _, qs = h.path.partition("?")
+        if path == "/":
+            return self._send(h, 200, "text/html; charset=utf-8", STAGE_PAGE.encode())
+        if path == "/now":
+            after = int((re.search(r"after=(\d+)", qs) or [0, "0"])[1])
+            with self.cv:
+                self.cv.wait_for(lambda: self.v != after, timeout=25)
+                body = json.dumps(self.now).encode()
+            return self._send(h, 200, "application/json", body)
+        m = re.fullmatch(r"/([tm])/(\d+)", path)
+        if m and m[1] == "t" and m[2] in self.files:
+            with open(self.files[m[2]], "rb") as f:
+                return self._send(h, 200, "image/" + (self.files[m[2]].rsplit(".", 1)[-1] or "png"), f.read())
+        if m and m[1] == "m" and m[2] in self.remote:
+            return self._relay(h, self.remote[m[2]])
+        self._send(h, 404, "text/plain", b"not here")
+
+    @staticmethod
+    def _send(h, code, ctype, body):
+        h.send_response(code)
+        h.send_header("Content-Type", ctype)
+        h.send_header("Content-Length", str(len(body)))
+        h.send_header("Cache-Control", "no-store")
+        h.end_headers()
+        h.wfile.write(body)
+
+    @staticmethod
+    def _relay(h, it):
+        """The original, fetched with its page as Referer (boorus refuse a bare
+        hotlink) and streamed, with Range passed through so video can seek."""
+        url = it.get("url") or it.get("sample") or ""
+        if url.startswith("file://") or url.startswith("/"):
+            local = url[7:] if url.startswith("file://") else url
+            with open(os.path.expanduser(local), "rb") as f:
+                return Stage._send(h, 200, "application/octet-stream", f.read())
+        headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) quarry-term"}
+        if it.get("page_url"):
+            headers["Referer"] = it["page_url"]
+        if h.headers.get("Range"):
+            headers["Range"] = h.headers["Range"]
+        try:
+            r = urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=25)
+        except urllib.error.HTTPError as e:
+            r = e
+        with r:
+            h.send_response(r.status if hasattr(r, "status") else r.code)
+            for k in ("Content-Type", "Content-Length", "Content-Range", "Accept-Ranges"):
+                if r.headers.get(k):
+                    h.send_header(k, r.headers[k])
+            h.end_headers()
+            shutil.copyfileobj(r, h.wfile, 1 << 16)
+
+
+def clip(text, n):
+    text = " ".join((text or "").split())
+    return text if len(text) <= n else text[:max(0, n - 1)] + "…"
+
+
+def human(n):
+    for unit in ("B", "KB", "MB", "GB"):
+        if n < 1024 or unit == "GB":
+            return f"{n:.0f} {unit}" if unit == "B" else f"{n:.1f} {unit}"
+        n /= 1024
+
+
+# ── the full-screen browser ──────────────────────────────────────────────────
+
+class Browser:
+    def __init__(self, query, gfx, size):
+        self.gfx = gfx
+        self.kitty = Kitty(None) if gfx == "kitty" else None
+        self.wake_r, self.wake_w = os.pipe()
+        os.set_blocking(self.wake_w, False)
+        self.d = Daemon(on_event=self._event)
+        self.query = query
+        self.items, self.count = [], 0
+        self.sel, self.top = 0, 0
+        self.tw = min(ZOOMS, key=lambda z: abs(z - size))
+        self.mode = "grid"          # grid | view | input
+        self.input = query
+        self.status = ""
+        self.status_until = 0
+        self.searching = 0          # live `more` calls in flight
+        self.exhausted = False
+        self.gen = 0
+        self.dirty = True
+        self.changed_at = 0         # last catalog.changed, for a debounced re-find
+        self.lock = threading.RLock()
+        # Pictures: id -> PIL thumb, (id, cols, rows) -> lines, id -> frames.
+        self.thumbs, self.tiles, self.anim = {}, {}, {}
+        self.want, self.busy = [], set()
+        self.view_imgs = {}
+        self.frame_i, self.frame_at = 0, 0
+        self.cv = threading.Condition()
+        self.stage, self.staged = None, None
+        for _ in range(6):
+            threading.Thread(target=self._thumb_worker, daemon=True).start()
+
+    # threads → main loop
+    def wake(self):
+        try:
+            os.write(self.wake_w, b"x")
+        except BlockingIOError:
+            pass
+
+    def _event(self, method, payload):
+        if method == "catalog.changed":
+            self.changed_at = time.time()
+            self.wake()
+
+    def flash(self, text, secs=4):
+        self.status, self.status_until = text, time.time() + secs
+        self.dirty = True
+
+    # ── searching ────────────────────────────────────────────────────────────
+    def run_query(self, q):
+        self.query = q.strip()
+        self.gen += 1
+        self.items, self.count, self.sel, self.top = [], 0, 0, 0
+        self.exhausted = False
+        with self.cv:
+            self.want = []
+        self.refind()
+        self.ask_sites()
+
+    def refind(self, keep=None):
+        """Re-read the catalogue for the current words, keeping the selection."""
+        gen = self.gen
+        want = max(PAGE, len(self.items))
+        try:
+            p = self.d.call("find", {"q": self.query, "offset": 0, "limit": min(want, 1000)})
+        except RuntimeError as e:
+            self.flash(str(e))
+            return
+        if gen != self.gen:
+            return
+        with self.lock:
+            cur = self.items[self.sel]["id"] if self.items else None
+            self.items, self.count = p.get("items", []), p.get("count", 0)
+            if cur:
+                for i, it in enumerate(self.items):
+                    if it["id"] == cur:
+                        self.sel = i
+                        break
+            self.sel = min(self.sel, max(0, len(self.items) - 1))
+        self.dirty = True
+
+    def page_more(self):
+        if len(self.items) < self.count and len(self.items) < 1000:
+            try:
+                p = self.d.call("find", {"q": self.query, "offset": len(self.items), "limit": PAGE})
+                with self.lock:
+                    seen = {it["id"] for it in self.items}
+                    self.items += [it for it in p.get("items", []) if it["id"] not in seen]
+                    self.count = p.get("count", self.count)
+                self.dirty = True
+            except RuntimeError as e:
+                self.flash(str(e))
+        else:
+            self.ask_sites()
+
+    def ask_sites(self):
+        if self.searching or self.exhausted:
+            return
+        gen, q = self.gen, " ".join(self.query.split())
+        self.searching += 1
+        self.dirty = True
+
+        def go():
+            try:
+                p = self.d.call("more", {"q": q, "pages": 2}, timeout=180)
+                if gen == self.gen:
+                    if not p.get("endless") and p.get("added", 0) == 0:
+                        self.exhausted = True
+                    failed = p.get("failed") or []
+                    self.flash(f"sites: {p.get('added', 0)} new"
+                               + (f", {len(failed)} failed" if failed else ""))
+            except RuntimeError as e:
+                self.flash(str(e))
+            finally:
+                self.searching -= 1
+                self.changed_at = time.time()
+                self.wake()
+        threading.Thread(target=go, daemon=True).start()
+
+    # ── thumbnails ───────────────────────────────────────────────────────────
+    def _thumb_worker(self):
+        while True:
+            with self.cv:
+                while not any(i not in self.busy for i, _ in self.want):
+                    self.cv.wait()
+                for n, (iid, size) in enumerate(self.want):
+                    if iid not in self.busy:
+                        self.busy.add(iid)
+                        del self.want[n]
+                        break
+            try:
+                img = self._load(iid, size)
+            except Exception:
+                img = False
+            with self.lock:
+                (self.thumbs if size == 160 else self.view_imgs)[iid] = img
+            with self.cv:
+                self.busy.discard(iid)
+            self.dirty = True
+            self.wake()
+
+    def _load(self, iid, size):
+        p = self.d.call("thumb", {"id": iid, "size": size}, timeout=60)
+        img = Image.open(os.path.expanduser(p["path"]))
+        img.load()
+        return img
+
+    def need(self, iid, size):
+        with self.cv:
+            if (iid, size) not in self.want and iid not in self.busy:
+                self.want.append((iid, size))
+                self.cv.notify_all()
+
+    # ── layout ───────────────────────────────────────────────────────────────
+    def geometry(self):
+        W, H = shutil.get_terminal_size((100, 30))
+        tw = min(self.tw, W)
+        tr = max(2, tw // 2)          # picture rows: half-blocks make pixels square
+        ncol = max(1, (W + 1) // (tw + 1))
+        nrow = max(1, (H - 2) // (tr + 1))
+        return W, H, tw, tr, ncol, nrow
+
+    def tile_lines(self, it, tw, tr):
+        key = (it["id"], tw, tr)
+        if key in self.tiles:
+            return self.tiles[key]
+        img = self.thumbs.get(it["id"])
+        if img is None:
+            self.need(it["id"], 160)
+            return solid(it.get("dominant"), tw, tr)
+        if img is False:
+            lines = solid("#402020", tw, tr)
+        else:
+            lines = blocks(img, tw, tr)
+        if len(self.tiles) > 4000:
+            self.tiles.clear()
+        self.tiles[key] = lines
+        return lines
+
+    def caption(self, it, tw, selected):
+        mark = "▶ " if is_video(it) else "♪ " if is_audio(it) else "≈ " if moves(it) else ""
+        text = clip(mark + (it.get("title") or it.get("slug") or it["id"]), tw).ljust(tw)
+        return ("\x1b[7;1m" if selected else "\x1b[2m") + text + "\x1b[0m"
+
+    # ── drawing ──────────────────────────────────────────────────────────────
+    def header(self, W):
+        spin = SPIN[int(time.time() * 10) % len(SPIN)]
+        right = f"{self.count} result" + ("" if self.count == 1 else "s")
+        if self.searching:
+            right = f"{spin} searching sites · " + right
+        if self.mode == "input":
+            left = f" / {self.input}"
+        else:
+            left = f" quarry ▸ {self.query or '(everything)'}"
+        left = clip(left, max(10, W - len(right) - 3))
+        return "\x1b[1m" + left + "\x1b[0m" + " " * max(1, W - len(left) - len(right) - 1) \
+            + "\x1b[2m" + right + "\x1b[0m"
+
+    def footer(self, W):
+        if self.status and time.time() < self.status_until:
+            text = " " + self.status
+        elif self.mode == "view":
+            text = " ←/→ prev/next · s save · w wallpaper · o open page · y copy link · p play" \
+                + (" · v stage" if Stage.wanted() else "") + " · q back"
+        elif self.mode == "input":
+            text = " type a search · Enter run · Esc cancel"
+        else:
+            text = " arrows move · Enter open · / search · +/- size · s save · w wallpaper · o page · n more" \
+                + (" · v stage" if Stage.wanted() else "") + " · q quit"
+        return "\x1b[2m" + clip(text, W).ljust(W) + "\x1b[0m"
+
+    def draw(self, out):
+        W, H, tw, tr, ncol, nrow = self.geometry()
+        buf = ["\x1b[?2026h\x1b[H"]
+        if self.kitty:
+            buf.append(Kitty.clear())
+        buf.append(self.header(W) + "\x1b[K\r\n")
+        if self.mode == "view":
+            self.draw_view(buf, W, H)
+        else:
+            self.draw_grid(buf, W, H, tw, tr, ncol, nrow)
+        buf.append(f"\x1b[{H};1H" + self.footer(W))
+        if self.mode == "input":
+            buf.append(f"\x1b[1;{min(W, 4 + len(self.input))}H\x1b[?25h")
+        else:
+            buf.append("\x1b[?25l")
+        buf.append("\x1b[?2026l")
+        out.write("".join(buf))
+        out.flush()
+
+    def draw_grid(self, buf, W, H, tw, tr, ncol, nrow):
+        with self.lock:
+            items = list(self.items)
+        if not items:
+            msg = "searching the sites…" if self.searching else "nothing matches"
+            buf.append("\x1b[J\r\n\r\n" + " " * max(0, (W - len(msg)) // 2) + "\x1b[2m" + msg + "\x1b[0m")
+            return
+        srow = self.sel // ncol
+        if srow < self.top:
+            self.top = srow
+        if srow >= self.top + nrow:
+            self.top = srow - nrow + 1
+        self.grid = (tw, tr, ncol)
+        visible = []
+        for r in range(nrow):
+            row_items = items[(self.top + r) * ncol:(self.top + r + 1) * ncol]
+            if not row_items:
+                buf.append("\x1b[J")
+                break
+            cells = [self.tile_lines(it, tw, tr) if not self.kitty else [" " * tw] * tr
+                     for it in row_items]
+            for line in range(tr):
+                buf.append(" ".join(c[line] for c in cells) + "\x1b[0m\x1b[K\r\n")
+            caps = [self.caption(it, tw, (self.top + r) * ncol + i == self.sel)
+                    for i, it in enumerate(row_items)]
+            buf.append(" ".join(caps) + "\x1b[K\r\n")
+            visible += row_items
+            if self.kitty:
+                for i, it in enumerate(row_items):
+                    img = self.thumbs.get(it["id"])
+                    if img is None:
+                        self.need(it["id"], 160)
+                    elif img:
+                        slot = (r * ncol + i) + 1
+                        buf.append(self.kitty.place(slot, img, i * (tw + 1), 1 + r * (tr + 1), tw, tr))
+                buf.append(f"\x1b[{2 + (r + 1) * (tr + 1)};1H")
+        else:
+            buf.append("\x1b[J")
+        # Prefetch the next screen too, so scrolling lands on filled tiles.
+        nxt = items[(self.top + nrow) * ncol:(self.top + 2 * nrow) * ncol]
+        for it in nxt:
+            if it["id"] not in self.thumbs:
+                self.need(it["id"], 160)
+        # The selected tile plays, the rest stay on frame zero — as in the app.
+        sel = items[self.sel] if self.sel < len(items) else None
+        if sel and moves(sel):
+            self.overlay_anim(buf, sel, (self.sel % ncol) * (tw + 1),
+                              1 + (self.sel // ncol - self.top) * (tr + 1), tw, tr)
+        if self.sel >= len(items) - ncol * 2 and not self.searching:
+            threading.Thread(target=self.page_more, daemon=True).start()
+
+    def overlay_anim(self, buf, it, col, row, cols, rows):
+        frames = self.anim.get(it["id"])
+        if frames is None:
+            got = self.view_imgs.get(("anim", it["id"]))
+            if got is None:
+                self.need_anim(it)
+                return
+            frames = self.anim[it["id"]] = got or []
+        if not frames:
+            return
+        f, _ = frames[self.frame_i % len(frames)]
+        if self.kitty:
+            buf.append(self.kitty.place(9999, f, col, row, cols, rows))
+            return
+        lines = self.frame_lines(it["id"], self.frame_i % len(frames), f, cols, rows)
+        for n, line in enumerate(lines):
+            buf.append(f"\x1b[{row + n + 1};{col + 1}H" + line)
+
+    def frame_lines(self, iid, i, f, cols, rows):
+        key = ("f", iid, i, cols, rows)
+        if key not in self.tiles:
+            self.tiles[key] = blocks(f, cols, rows)
+        return self.tiles[key]
+
+    def need_anim(self, it):
+        key = ("anim", it["id"])
+        with self.cv:
+            if key in self.busy or any(k == key for k, _ in self.want):
+                return
+        def go():
+            with self.cv:
+                self.busy.add(key)
+            try:
+                got = frames_of(fetch_original(it), (640, 640))
+            except Exception:
+                got = False
+            self.view_imgs[key] = got
+            with self.cv:
+                self.busy.discard(key)
+            self.dirty = True
+            self.wake()
+        threading.Thread(target=go, daemon=True).start()
+
+    def draw_view(self, buf, W, H):
+        with self.lock:
+            it = self.items[self.sel] if self.sel < len(self.items) else None
+        rows = H - 3
+        if not it:
+            return
+        dims = f"{it.get('w', 0)}×{it.get('h', 0)}" if it.get("w") else ""
+        info = " · ".join(x for x in (it.get("title") or it["id"], it.get("source"), it.get("kind"),
+                                      dims, human(it["bytes"]) if it.get("bytes") else "",
+                                      it.get("author")) if x)
+        buf.append("\x1b[2m " + clip(info, W - 2) + "\x1b[0m\x1b[K\r\n")
+        if moves(it):
+            frames = self.anim.get(it["id"])
+            if frames is None:
+                got = self.view_imgs.get(("anim", it["id"]))
+                if got is None:
+                    self.need_anim(it)
+                else:
+                    frames = self.anim[it["id"]] = got or []
+            if frames:
+                f, _ = frames[self.frame_i % len(frames)]
+                if self.kitty:
+                    buf.append("\x1b[J" + self.kitty.place(9998, f, 0, 2, W, rows))
+                else:
+                    lines = self.frame_lines(it["id"], self.frame_i % len(frames), f, W, rows)
+                    buf.append("\r\n".join(l + "\x1b[K" for l in lines))
+                return
+        img = self.view_imgs.get(it["id"])
+        if img is None:
+            self.need(it["id"], 640)
+            img = self.thumbs.get(it["id"])
+        if not img:
+            msg = "loading…" if img is None else "no picture for this one"
+            buf.append("\x1b[J\r\n" + " " * max(0, (W - len(msg)) // 2) + msg)
+            return
+        if self.kitty:
+            buf.append("\x1b[J" + self.kitty.place(9998, img, 0, 2, W, rows))
+            return
+        key = ("v", it["id"], id(img), W, rows)
+        if key not in self.tiles:
+            self.tiles[key] = blocks(img, W, rows)
+        buf.append("\r\n".join(l + "\x1b[K" for l in self.tiles[key]))
+        if is_video(it) or is_audio(it):
+            msg = " ▶ p to play "
+            buf.append(f"\x1b[{2 + rows // 2};{max(1, (W - len(msg)) // 2)}H\x1b[7m{msg}\x1b[0m")
+
+    # ── actions ──────────────────────────────────────────────────────────────
+    def current(self):
+        with self.lock:
+            return self.items[self.sel] if self.sel < len(self.items) else None
+
+    def save(self, then_wallpaper=False):
+        it = self.current()
+        if not it:
+            return
+        self.flash("saving…", 60)
+
+        def go():
+            try:
+                p = self.d.call("export", {"id": it["id"], "recipe": {"original": True}}, timeout=180)
+                path = os.path.expanduser(p["path"])
+                if then_wallpaper:
+                    sw = os.path.expanduser("~/.config/quickshell/ii/scripts/colors/switchwall.sh")
+                    if not os.access(sw, os.X_OK):
+                        raise RuntimeError(f"no {sw} to apply it with")
+                    subprocess.Popen([sw, "--image", path], stdout=subprocess.DEVNULL,
+                                     stderr=subprocess.DEVNULL, start_new_session=True)
+                    self.flash(f"wallpaper ← {path}")
+                else:
+                    self.flash(f"saved {path} ({p.get('human', '')})", 8)
+            except Exception as e:
+                self.flash(f"save failed: {e}", 8)
+            self.wake()
+        threading.Thread(target=go, daemon=True).start()
+
+    def open_page(self):
+        it = self.current()
+        url = it and (it.get("page_url") or it.get("url"))
+        if url:
+            subprocess.Popen(["xdg-open", url], stdout=subprocess.DEVNULL,
+                             stderr=subprocess.DEVNULL, start_new_session=True)
+            self.flash(f"opened {url}")
+
+    def copy_link(self):
+        it = self.current()
+        url = it and it.get("url")
+        if not url:
+            return
+        try:
+            subprocess.run(["wl-copy", url], check=True, timeout=5)
+            self.flash(f"copied {url}")
+        except Exception:
+            self.flash(url, 10)
+
+    def play(self, tty_restore):
+        """Video and audio through mpv, drawn as text so it works inside zeit too."""
+        it = self.current()
+        if not it:
+            return
+        if not shutil.which("mpv"):
+            self.flash("mpv is not installed")
+            return
+        vo = "kitty" if self.kitty else "tct"
+        cmd = ["mpv", "--really-quiet", "--loop-file=inf" if moves(it) else "--loop-file=no",
+               f"--vo={vo}", "--term-osd-bar=yes"]
+        if is_audio(it):
+            cmd = ["mpv", "--no-video", "--term-osd-bar=yes"]
+        if it.get("page_url"):
+            cmd.append(f"--referrer={it['page_url']}")
+        cmd += os.environ.get("QUARRY_TERM_MPV", "").split()
+        cmd.append(it.get("url") or it.get("sample") or "")
+        tty_restore(True)
+        sys.stdout.write("\x1b[2J\x1b[H\x1b[?25h")
+        sys.stdout.write(f"  {it.get('title') or it['id']} — q quits the player\n")
+        sys.stdout.flush()
+        try:
+            subprocess.run(cmd)
+        except KeyboardInterrupt:
+            pass
+        tty_restore(False)
+        self.tiles.clear()
+        self.dirty = True
+
+    # ── keys ─────────────────────────────────────────────────────────────────
+    def key(self, k, tty_restore):
+        if self.mode == "input":
+            if k in ("\r", "\n"):
+                self.mode = "grid"
+                self.run_query(self.input)
+            elif k == "\x1b":
+                self.mode = "grid"
+                self.input = self.query
+            elif k in ("\x7f", "\x08"):
+                self.input = self.input[:-1]
+            elif k == "\x15":
+                self.input = ""
+            elif k == "\x17":
+                self.input = re.sub(r"\S*\s*$", "", self.input)
+            elif k.isprintable():
+                self.input += k
+            self.dirty = True
+            return True
+        n = len(self.items)
+        ncol = self.geometry()[4]
+        nrow = self.geometry()[5]
+        step = 1 if self.mode == "view" else ncol
+        moved = {"left": -1, "h": -1, "right": 1, "l": 1,
+                 "up": -step, "k": -step, "down": step, "j": step,
+                 "pgup": -step * nrow, "pgdn": step * nrow}.get(k)
+        if self.mode == "view" and k in ("up", "down", "k", "j"):
+            moved = None
+        if moved is not None and n:
+            self.sel = max(0, min(n - 1, self.sel + moved))
+            self.frame_i = 0
+        elif k in ("home", "g"):
+            self.sel = 0
+        elif k in ("end", "G"):
+            self.sel = max(0, n - 1)
+        elif k in ("q", "\x1b") and self.mode == "view":
+            self.mode = "grid"
+        elif k in ("q", "\x03"):
+            return False
+        elif k == "\x03":
+            return False
+        elif k in ("\r", "\n"):
+            if self.mode == "grid" and n:
+                self.mode = "view"
+                self.frame_i = 0
+            elif self.mode == "view":
+                cur = self.current()
+                if cur and (is_video(cur) or is_audio(cur)):
+                    self.play(tty_restore)
+        elif k == "/":
+            self.mode = "input"
+            self.input = ""
+        elif k in ("+", "="):
+            self.tw = ZOOMS[min(len(ZOOMS) - 1, ZOOMS.index(self.tw) + 1)]
+        elif k in ("-", "_"):
+            self.tw = ZOOMS[max(0, ZOOMS.index(self.tw) - 1)]
+        elif k == "n":
+            self.exhausted = False
+            self.ask_sites()
+        elif k == "s":
+            self.save()
+        elif k == "w":
+            self.save(then_wallpaper=True)
+        elif k == "o":
+            self.open_page()
+        elif k == "y":
+            self.copy_link()
+        elif k == "p":
+            self.play(tty_restore)
+        elif k == "r":
+            self.tiles.clear()
+        elif k == "v" and Stage.wanted():
+            self.toggle_stage()
+        self.dirty = True
+        return True
+
+    # ── the stage ────────────────────────────────────────────────────────────
+    def toggle_stage(self):
+        if self.stage and self.stage.pane:
+            self.stage.close()
+            return
+        try:
+            self.stage = self.stage or Stage()
+            self.stage.open()
+            self.staged = None
+            if not self.stage.pane:
+                self.flash("zeit did not open the stage pane")
+        except Exception as e:
+            self.flash(f"no stage: {e}")
+
+    def sync_stage(self):
+        """The stage follows the selection; it is told again when the thumb lands."""
+        if not (self.stage and self.stage.pane):
+            return
+        it = self.current()
+        img = self.thumbs.get(it["id"]) if it else None
+        thumb = getattr(img, "filename", None) or None
+        key = (it and it["id"], thumb)
+        if key != self.staged:
+            self.staged = key
+            self.stage.show(it, thumb)
+
+    # ── loop ─────────────────────────────────────────────────────────────────
+    def run(self):
+        fd = sys.stdin.fileno()
+        saved = termios.tcgetattr(fd)
+        out = sys.stdout
+        resized = [False]
+
+        def restore(leaving):
+            if leaving:
+                termios.tcsetattr(fd, termios.TCSADRAIN, saved)
+                out.write(("\x1b_Ga=d,d=A,q=2\x1b\\" if self.kitty else "") + "\x1b[?25h\x1b[?1049l")
+            else:
+                tty.setraw(fd)
+                out.write("\x1b[?1049h\x1b[?25l\x1b[2J")
+            out.flush()
+
+        def on_winch(*_):
+            resized[0] = True
+            self.wake()
+        signal.signal(signal.SIGWINCH, on_winch)
+        # Closing the pane must still take the stage pane with it.
+        for sig in (signal.SIGHUP, signal.SIGTERM):
+            signal.signal(sig, lambda *_: sys.exit(0))
+        restore(False)
+        try:
+            if Stage.wanted():
+                self.toggle_stage()
+            self.run_query(self.query)
+            pending = b""
+            while True:
+                if self.changed_at and time.time() - self.changed_at > 0.3:
+                    self.changed_at = 0
+                    self.refind()
+                if resized[0]:
+                    resized[0] = False
+                    out.write("\x1b[2J")
+                    self.dirty = True
+                cur = self.current()
+                animating = cur and moves(cur) and len(self.anim.get(cur["id"]) or []) > 1
+                if animating:
+                    frames = self.anim[cur["id"]]
+                    now = time.time()
+                    if now >= self.frame_at:
+                        self.frame_i += 1
+                        self.frame_at = now + frames[self.frame_i % len(frames)][1]
+                        self.dirty = True
+                if self.searching:
+                    self.dirty = True   # the spinner
+                if self.dirty:
+                    self.dirty = False
+                    self.draw(out)
+                    self.sync_stage()
+                wait = 0.1 if self.searching else 1.0
+                if animating:
+                    wait = max(0.0, min(wait, self.frame_at - time.time()))
+                if self.changed_at:
+                    wait = min(wait, 0.3)
+                r, _, _ = select.select([fd, self.wake_r], [], [], wait)
+                if self.wake_r in r:
+                    os.read(self.wake_r, 4096)
+                if fd in r:
+                    pending += os.read(fd, 4096)
+                    keys, pending = parse_keys(pending)
+                    for k in keys:
+                        if not self.key(k, restore):
+                            return
+        finally:
+            if self.stage:
+                self.stage.close()
+            restore(True)
+
+
+KEYS = {"\x1b[A": "up", "\x1b[B": "down", "\x1b[C": "right", "\x1b[D": "left",
+        "\x1bOA": "up", "\x1bOB": "down", "\x1bOC": "right", "\x1bOD": "left",
+        "\x1b[5~": "pgup", "\x1b[6~": "pgdn", "\x1b[H": "home", "\x1b[F": "end",
+        "\x1b[1~": "home", "\x1b[4~": "end"}
+
+
+def parse_keys(data):
+    text = data.decode("utf-8", "ignore")
+    keys, i = [], 0
+    while i < len(text):
+        if text[i] == "\x1b":
+            m = re.match(r"\x1b(\[[0-9;]*[~A-Za-z]|O[A-Z])", text[i:])
+            if m:
+                keys.append(KEYS.get(m.group(0), ""))
+                i += len(m.group(0))
+                continue
+            keys.append("\x1b")
+        else:
+            keys.append(text[i])
+        i += 1
+    return [k for k in keys if k], b""
+
+
+# ── one-shot commands ────────────────────────────────────────────────────────
+
+def show(query, n, size, live, gfx):
+    d = Daemon()
+    if live:
+        print(f"\x1b[2masking the sites for “{query}”…\x1b[0m", file=sys.stderr)
+        try:
+            d.call("more", {"q": " ".join(query.split()), "pages": 1}, timeout=120)
+        except RuntimeError as e:
+            print(e, file=sys.stderr)
+    p = d.call("find", {"q": query, "offset": 0, "limit": n})
+    items = p.get("items", [])
+    if not items:
+        print(f"nothing matches “{query}”" + ("" if live else " in the catalogue — try --live"))
+        return 1
+    W = shutil.get_terminal_size((100, 30)).columns
+    tw = min(size, W)
+    tr = max(2, tw // 2)
+    ncol = max(1, (W + 1) // (tw + 1))
+    imgs = {}
+
+    def load(it):
+        try:
+            path = os.path.expanduser(d.call("thumb", {"id": it["id"], "size": 160}, timeout=60)["path"])
+            img = Image.open(path)
+            img.load()
+            imgs[it["id"]] = img
+        except Exception:
+            imgs[it["id"]] = None
+    threads = [threading.Thread(target=load, args=(it,)) for it in items]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    out = sys.stdout
+    # Ids of their own, so these stay in the scrollback when the next run places more.
+    base = (int(time.time() * 1000) % 1_000_000) * 1000
+    for r in range(0, len(items), ncol):
+        row = items[r:r + ncol]
+        if gfx == "kitty":
+            out.write("\n" * (tr + 1) + f"\x1b[{tr + 1}A\x1b7")
+            k = Kitty(out)
+            for i, it in enumerate(row):
+                if imgs.get(it["id"]):
+                    out.write("\x1b8" + (f"\x1b[{i * (tw + 1)}C" if i else "")
+                              + k.place(base + r + i, imgs[it["id"]], 0, 0, tw, tr).split("H", 1)[1])
+            out.write("\x1b8" + f"\x1b[{tr}B\r")
+        else:
+            cells = [blocks(imgs[it["id"]], tw, tr) if imgs.get(it["id"]) else solid(it.get("dominant"), tw, tr)
+                     for it in row]
+            for line in range(tr):
+                out.write(" ".join(c[line] for c in cells) + "\x1b[0m\n")
+        out.write(" ".join("\x1b[2m" + clip(it.get("title") or it["id"], tw).ljust(tw) + "\x1b[0m"
+                           for it in row) + "\n")
+    print(f"\x1b[2m{len(items)} of {p.get('count', 0)} · quarry term \"{query}\" to browse\x1b[0m")
+    return 0
+
+
+def cat(target, cols, loops, gfx):
+    it = None
+    path = None
+    if os.path.exists(target):
+        path = target
+    elif re.match(r"https?://", target):
+        path = fetch_original({"url": target, "ext": target.rsplit(".", 1)[-1].split("?")[0][:5]})
+    else:
+        d = Daemon()
+        it = d.call("item", {"id": target}).get("item")
+        if not it:
+            sys.exit(f"quarry term: no item {target}")
+        if moves(it):
+            path = fetch_original(it)
+        else:
+            path = os.path.expanduser(d.call("thumb", {"id": target, "size": 640}, timeout=60)["path"])
+    W, H = shutil.get_terminal_size((100, 30))
+    cols = min(cols or W, W)
+    rows = max(4, min(H - 2, cols // 2))
+    frames = frames_of(path, (1280, 1280))
+    out = sys.stdout
+    if gfx == "kitty":
+        k = Kitty(out)
+        out.write("\n" * rows + f"\x1b[{rows}A\x1b7")
+        for _ in range(max(1, loops) if len(frames) > 1 else 1):
+            for f, secs in frames:
+                out.write("\x1b8" + k.place(4242, f, 0, 0, cols, rows).split("H", 1)[1])
+                out.flush()
+                time.sleep(secs if len(frames) > 1 else 0)
+        out.write("\x1b8" + f"\x1b[{rows}B\n")
+        return 0
+    rendered = [(blocks(f, cols, rows), secs) for f, secs in frames]
+    # Trim the blank rows a wide picture leaves above and below it.
+    used = [i for i in range(rows) if any("▀" in lines[i] or "▄" in lines[i] for lines, _ in rendered)]
+    lo, hi = (used[0], used[-1] + 1) if used else (0, rows)
+    rendered = [(lines[lo:hi], secs) for lines, secs in rendered]
+    h = hi - lo
+    out.write("\x1b[?25l")
+    try:
+        if len(rendered) == 1:
+            out.write("\n".join(rendered[0][0]) + "\n")
+            return 0
+        fd = sys.stdin.fileno()
+        interactive = os.isatty(fd)
+        saved = termios.tcgetattr(fd) if interactive else None
+        if interactive:
+            tty.setcbreak(fd)
+        try:
+            played = 0
+            first = True
+            while loops == 0 or played < loops:
+                for lines, secs in rendered:
+                    if not first:
+                        out.write(f"\x1b[{h}A\r")
+                    first = False
+                    out.write("\n".join(lines) + "\n")
+                    out.flush()
+                    if interactive and select.select([fd], [], [], secs)[0]:
+                        os.read(fd, 64)
+                        return 0
+                    if not interactive:
+                        time.sleep(secs)
+                played += 1
+        finally:
+            if interactive:
+                termios.tcsetattr(fd, termios.TCSADRAIN, saved)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        out.write("\x1b[0m\x1b[?25h")
+        out.flush()
+    return 0
+
+
+def main(argv):
+    opts = {"gfx": detect_gfx(), "size": 16, "live": False, "loops": 3, "n": 0}
+    args = []
+    i = 0
+    while i < len(argv):
+        a = argv[i]
+        if a in ("-h", "--help"):
+            print(__doc__.split("\nWHY")[0].strip())
+            return 0
+        if a in ("--gfx", "--size", "--loops", "-n"):
+            if i + 1 >= len(argv):
+                sys.exit(f"quarry term: {a} needs a value")
+            v = argv[i + 1]
+            key = a.lstrip("-")
+            opts[key] = v if key == "gfx" else int(v)
+            i += 2
+            continue
+        if a == "--live":
+            opts["live"] = True
+        else:
+            args.append(a)
+        i += 1
+    if opts["gfx"] not in ("blocks", "kitty"):
+        sys.exit("quarry term: --gfx is blocks or kitty")
+    if args and args[0] == "show":
+        q = " ".join(args[1:])
+        W = shutil.get_terminal_size((100, 30)).columns
+        n = opts["n"] or max(1, (W + 1) // (opts["size"] + 1)) * 2
+        return show(q, n, opts["size"], opts["live"], opts["gfx"])
+    if args and args[0] == "cat":
+        if len(args) < 2:
+            sys.exit("quarry term cat ID|FILE|URL")
+        return cat(args[1], 0 if opts["size"] == 16 else opts["size"], opts["loops"], opts["gfx"])
+    if not sys.stdin.isatty() or not sys.stdout.isatty():
+        sys.exit("quarry term: browsing needs a terminal — try `quarry term show QUERY`")
+    Browser(" ".join(args), opts["gfx"], opts["size"]).run()
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main(sys.argv[1:]))
+    except KeyboardInterrupt:
+        sys.exit(130)

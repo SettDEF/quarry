@@ -1,0 +1,28 @@
+{
+  "id": "pornhub",
+  "name": "Pornhub",
+  "version": "1.0",
+  "author": "quarry",
+  "icon": "play_circle",
+  "adult": true,
+  "description": "Pornhub as itself: its orderings, its own list of categories down the rail, and a watch screen that resolves the page to real files and keeps going with what is next. One site, all of it — the Tube lens covers three sites shallowly, this covers one properly.",
+  "entry": "Main.qml",
+  "sources": ["pornhub"],
+  "rail": true,
+  "defaultSkin": "orange",
+  "skins": [
+    {
+      "id": "orange",
+      "name": "Orange",
+      "description": "The site's own shape: black ground, orange on the things you press, posters big enough to choose from.",
+      "entry": "skins/Orange.qml"
+    },
+    {
+      "id": "quarry",
+      "name": "Quarry",
+      "description": "The app's own surfaces and colours, for when the lens should not look like a different program.",
+      "entry": "skins/Quarry.qml"
+    }
+  ],
+  "enabledByDefault": false
+}

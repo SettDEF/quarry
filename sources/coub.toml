@@ -1,0 +1,52 @@
+# Coub — short looping videos, keyless, with a direct mp4 on every row.
+#
+# Probed live 2026-10-08:
+#   /api/v2/timeline/explore?per_page=5  → 200, 25,352 bytes
+#
+# WORTH HAVING BECAUSE THE FILE IS REALLY THERE. Most video sites hand out a
+# page and leave you to find the stream on it — which is why dailymotion and
+# peertube were probed and NOT added: the daemon resolved 0 renditions from
+# their pages, so every row would have been a tile that cannot be played.
+# `file_versions.mobile.video` is an ordinary mp4 that plays as-is.
+#
+# A coub is a loop of a few seconds with its own audio track, so these are the
+# one source here where `duration` being small is the point rather than a sign
+# of a broken capture.
+
+id = "coub"
+label = "Coub"
+category = "video"
+family = "video"
+
+[request]
+url = "https://coub.com/api/v2/timeline/explore?per_page={limit}&page={page}"
+limit = 25
+format = "json"
+root = "coubs"
+
+[capabilities]
+text = false
+tags = true
+nsfw = true
+sort = false
+
+[map]
+id = "permalink"
+url = "file_versions.mobile.video"
+thumb = "picture"
+sample = "file_versions.mobile.video"
+title = "title"
+page_url = "https://coub.com/view/{permalink}"
+author = "channel.title"
+duration = "duration"
+# `dimensions.big` is a two-element array rather than an object, so the width
+# and height are read by position.
+width = "dimensions.big[0]"
+height = "dimensions.big[1]"
+tags = "tags[].title"
+# The rating is a bare `true`, and `null` for everything else — so it is read
+# as a rating value, the way the lemmy manifests read theirs, rather than as a
+# field called `nsfw` which the mapper does not have.
+rating = "not_safe_for_work"
+nsfw_ratings = ["true"]
+license = "=Coub terms"

@@ -1,0 +1,28 @@
+{
+  "id": "tube",
+  "name": "Tube",
+  "version": "1.0",
+  "author": "quarry",
+  "icon": "smart_display",
+  "adult": true,
+  "description": "Three video sites as themselves: Pornhub, EPORNER and RedTube, each with its own search, its own orderings and its own place to come back to. Every page is the site's real search through quarryd, and the qualities are resolved from the video's own page rather than guessed.",
+  "entry": "Main.qml",
+  "sources": ["pornhub", "eporner", "redtube"],
+  "rail": true,
+  "defaultSkin": "quarry",
+  "skins": [
+    {
+      "id": "quarry",
+      "name": "Quarry",
+      "description": "The app's own surfaces — cards on layer 1, the same colours as everything else.",
+      "entry": "skins/Quarry.qml"
+    },
+    {
+      "id": "marquee",
+      "name": "Marquee",
+      "description": "The shape these sites actually are: black ground, amber accent, big posters with a duration badge.",
+      "entry": "skins/Marquee.qml"
+    }
+  ],
+  "enabledByDefault": false
+}

@@ -1,0 +1,7 @@
+{
+  "ends_at": "2026-12-01T00:00:00+00:00",
+  "backgrounds": [
+    { "url": "https://assets.ppy.sh/contests/999/winners/Example-One.jpg", "user": { "id": 1, "username": "example_artist", "avatar_url": "https://a.ppy.sh/1" } },
+    { "url": "https://assets.ppy.sh/contests/999/winners/Example-Two.png", "user": { "id": 2, "username": "second_artist", "avatar_url": "https://a.ppy.sh/2" } }
+  ]
+}

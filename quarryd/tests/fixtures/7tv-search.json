@@ -1,0 +1,11 @@
+{"data":{"emotes":{"items":[
+{"id":"01AAAAAAAAAAAAAAAAAAAAAAAA","name":"catWiggle","animated":true,"owner":{"display_name":"FixtureOwner"},"host":{"url":"//cdn.7tv.app/emote/01AAAAAAAAAAAAAAAAAAAAAAAA","files":[
+ {"name":"1x.webp","width":32,"height":32,"format":"WEBP","size":9000},
+ {"name":"2x.gif","width":64,"height":64,"format":"GIF","size":60000},
+ {"name":"4x.webp","width":128,"height":128,"format":"WEBP","size":90000},
+ {"name":"4x.gif","width":128,"height":128,"format":"GIF","size":210000}]}},
+{"id":"01BBBBBBBBBBBBBBBBBBBBBBBB","name":"wideDance","animated":true,"owner":null,"host":{"url":"//cdn.7tv.app/emote/01BBBBBBBBBBBBBBBBBBBBBBBB","files":[
+ {"name":"4x.gif","width":228,"height":128,"format":"GIF","size":451000}]}},
+{"id":"01CCCCCCCCCCCCCCCCCCCCCCCC","name":"noGifYet","animated":true,"owner":{"display_name":"x"},"host":{"url":"//cdn.7tv.app/emote/01CCCCCCCCCCCCCCCCCCCCCCCC","files":[
+ {"name":"4x.webp","width":128,"height":128,"format":"WEBP","size":1000}]}}
+]}}}
