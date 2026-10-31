@@ -25,6 +25,8 @@ depends=(
     'qt6-declarative'     # QtQuick, Controls, Layouts
     'qt6-5compat'         # Qt5Compat.GraphicalEffects — OpacityMask for ripples
     'qt6-svg'             # renders the app icon and any SVG the daemon does not
+    'qt6-websockets'      # QtWebSockets: services/Dispatch.qml (and the morse lens); without it
+                          # the window does not open ("module QtWebSockets is not installed")
     'bash'
     # quarry-proto speaks the unix socket with it.
     'socat'
