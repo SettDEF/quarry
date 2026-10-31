@@ -99,7 +99,7 @@ fi
 # at the cause. Ask for `rust` and it cannot happen.
 DEPS=(
   git base-devel rust cmake
-  quickshell qt6-declarative qt6-5compat qt6-svg qt6-websockets qt6-webengine
+  quickshell qt6-declarative qt6-5compat qt6-svg qt6-websockets qt6-quick3d qt6-webengine
   openssl ffmpeg libglvnd libxkbcommon wayland hicolor-icon-theme
 )
 
